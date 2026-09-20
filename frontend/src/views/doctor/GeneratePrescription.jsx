@@ -1,4 +1,259 @@
-import {useEffect,useMemo,useState} from 'react'; import {api,getErrorMessage} from '../../api/client'; import {useApp} from '../../context/AppContext'; import Dropdown from '../../components/Dropdown'; import './Doctor.css';
-const guessDose=name=>{const n=String(name||'').trim().toLowerCase();if(n.endsWith('tablet')||n.endsWith('capsule'))return '1 pcs';if(n.endsWith('syrup')||n.endsWith('syrup l'))return '10 ml';return ''};
-const defaultLine=()=>({medicineName:'',dose:'',instruction:'',timing:[],sos:false,foodTiming:''});
-export default function GeneratePrescription(){const{notify}=useApp();const[patients,setPatients]=useState([]);const[appointmentId,setAppointmentId]=useState('');const[age,setAge]=useState('');const[search,setSearch]=useState('');const[results,setResults]=useState([]);const[line,setLine]=useState(defaultLine());const[lines,setLines]=useState([]);useEffect(()=>{api.get('/doctor/today-patients').then(r=>setPatients(r.data.items)).catch(e=>notify('error',getErrorMessage(e)))},[]);const patient=useMemo(()=>patients.find(x=>String(x.appointment_id)===String(appointmentId)),[patients,appointmentId]);useEffect(()=>{if(patient)setAge(patient.age)},[patient]);useEffect(()=>{if(!search.trim()){setResults([]);return}const id=setTimeout(()=>api.get(`/doctor/medicines?q=${encodeURIComponent(search)}`).then(r=>setResults(r.data.items)).catch(e=>notify('error',getErrorMessage(e))),250);return()=>clearTimeout(id)},[search]);const selectMedicine=m=>{setLine(x=>({...x,medicineName:m.name,dose:x.dose||guessDose(m.name)}));setSearch('');setResults([])};const toggle=t=>setLine(x=>({...x,timing:x.timing.includes(t)?x.timing.filter(v=>v!==t):[...x.timing,t]}));const add=()=>{if(!line.medicineName.trim()||!line.dose.trim()||!line.timing.length||!line.foodTiming)return notify('warning','Medicine name, dose, timing and food timing are mandatory.');setLines(x=>[...x,{...line,medicineName:line.medicineName.trim(),dose:line.dose.trim()}]);setLine(defaultLine());setSearch('');notify('success','Medicine added.');};const remove=i=>setLines(x=>x.filter((_,n)=>n!==i));const generate=async()=>{if(!appointmentId)return notify('warning','Choose a patient with an appointment today.');if(!lines.length)return notify('warning','Add at least one medicine.');try{await api.post('/doctor/prescriptions',{appointmentId:Number(appointmentId),patientAge:Number(age),medicines:lines});notify('success','Prescription PDF generated and stored.');setLines([])}catch(e){notify('error',getErrorMessage(e))}};return <div className='panel'><h1>Generate Prescription</h1><div className='doctor-grid'><section><div className='field'><label>Patient with appointment today</label><Dropdown options={patients} value={appointmentId} onOptionSelected={x=>setAppointmentId(x.appointment_id)} labelProcessor={x=>`${x.name} · ${x.email}`} valueProcessor={x=>x.appointment_id} placeholder='Select patient'/></div><div className='form-grid'><div className='field'><label>Age (auto-calculated, editable)</label><input type='number' min='0' max='150' value={age} onChange={e=>setAge(e.target.value)}/></div><div className='field'><label>Medicine search</label><div className='medicine-search'><input value={search} onChange={e=>setSearch(e.target.value)} placeholder='Search medicine...'/>{results.length>0&&<div className='medicine-results'>{results.map(m=><button type='button' key={m.id} onClick={()=>selectMedicine(m)}>{m.name}</button>)}</div>}</div></div></div><div className='field'><label>Selected medicine</label><input value={line.medicineName} readOnly/></div><div className='form-grid'><div className='field'><label>Dose</label><input value={line.dose} onChange={e=>setLine(x=>({...x,dose:e.target.value}))}/></div><div className='field'><label>Other condition / instruction</label><textarea rows='3' value={line.instruction} onChange={e=>setLine(x=>({...x,instruction:e.target.value}))}/></div><div className='field'><label>Medicine taking time</label><div className='toggles'>{['morning','afternoon','evening','night'].map(t=><button type='button' key={t} className={`toggle ${line.timing.includes(t)?'on':''}`} onClick={()=>toggle(t)}>{t}</button>)}<button type='button' className={`toggle ${line.sos?'on':''}`} onClick={()=>setLine(x=>({...x,sos:!x.sos}))}>SOS</button></div></div><div className='field'><label>Food timing</label><Dropdown options={['Before food','with food','after food']} value={line.foodTiming} onOptionSelected={x=>setLine(v=>({...v,foodTiming:x}))} placeholder='Select food timing'/></div></div><button className='btn' onClick={add}>Add medicine</button></section><section><h2>Prescription medicines</h2><div className='prescription-lines'>{!lines.length&&<div className='muted'>No medicines added yet.</div>}{lines.map((m,i)=><div className='prescription-line' key={`${m.medicineName}-${i}`}><b>{i+1}. {m.medicineName}</b><div>Dose: {m.dose}</div><div>Timing: {m.timing.join(', ')}</div><div>Food: {m.foodTiming}</div><div>{m.sos?'SOS: Yes':'SOS: No'}</div>{m.instruction&&<div>Instruction: {m.instruction}</div>}<button className='btn secondary' onClick={()=>remove(i)}>Remove</button></div>)}</div><br/><button className='btn' onClick={generate} disabled={!lines.length}>Generate prescription PDF</button></section></div></div>}
+import { useEffect, useMemo, useState } from "react";
+import { api, getErrorMessage } from "../../api/client";
+import { useApp } from "../../context/AppContext";
+import Dropdown from "../../components/Dropdown";
+import "./Doctor.css";
+const guessDose = (name) => {
+  const n = String(name || "")
+    .trim()
+    .toLowerCase();
+  if (n.endsWith("tablet") || n.endsWith("capsule")) return "1 pcs";
+  if (n.endsWith("syrup") || n.endsWith("syrup l")) return "10 ml";
+  return "";
+};
+const defaultLine = () => ({
+  medicineName: "",
+  dose: "",
+  instruction: "",
+  timing: [],
+  sos: false,
+  foodTiming: "",
+});
+export default function GeneratePrescription() {
+  const { notify } = useApp();
+  const [patients, setPatients] = useState([]);
+  const [appointmentId, setAppointmentId] = useState("");
+  const [age, setAge] = useState("");
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState([]);
+  const [line, setLine] = useState(defaultLine());
+  const [lines, setLines] = useState([]);
+  useEffect(() => {
+    api
+      .get("/doctor/today-patients")
+      .then((r) => setPatients(r.data.items))
+      .catch((e) => notify("error", getErrorMessage(e)));
+  }, []);
+  const patient = useMemo(
+    () =>
+      patients.find((x) => String(x.appointment_id) === String(appointmentId)),
+    [patients, appointmentId],
+  );
+  useEffect(() => {
+    if (patient) setAge(patient.age);
+  }, [patient]);
+  useEffect(() => {
+    if (!search.trim()) {
+      setResults([]);
+      return;
+    }
+    const id = setTimeout(
+      () =>
+        api
+          .get(`/doctor/medicines?q=${encodeURIComponent(search)}`)
+          .then((r) => setResults(r.data.items))
+          .catch((e) => notify("error", getErrorMessage(e))),
+      250,
+    );
+    return () => clearTimeout(id);
+  }, [search]);
+  const selectMedicine = (m) => {
+    setLine((x) => ({
+      ...x,
+      medicineName: m.name,
+      dose: x.dose || guessDose(m.name),
+    }));
+    setSearch("");
+    setResults([]);
+  };
+  const toggle = (t) =>
+    setLine((x) => ({
+      ...x,
+      timing: x.timing.includes(t)
+        ? x.timing.filter((v) => v !== t)
+        : [...x.timing, t],
+    }));
+  const add = () => {
+    if (
+      !line.medicineName.trim() ||
+      !line.dose.trim() ||
+      !line.timing.length ||
+      !line.foodTiming
+    )
+      return notify(
+        "warning",
+        "Medicine name, dose, timing and food timing are mandatory.",
+      );
+    setLines((x) => [
+      ...x,
+      {
+        ...line,
+        medicineName: line.medicineName.trim(),
+        dose: line.dose.trim(),
+      },
+    ]);
+    setLine(defaultLine());
+    setSearch("");
+    notify("success", "Medicine added.");
+  };
+  const remove = (i) => setLines((x) => x.filter((_, n) => n !== i));
+  const generate = async () => {
+    if (!appointmentId)
+      return notify("warning", "Choose a patient with an appointment today.");
+    if (!lines.length) return notify("warning", "Add at least one medicine.");
+    try {
+      await api.post("/doctor/prescriptions", {
+        appointmentId: Number(appointmentId),
+        patientAge: Number(age),
+        medicines: lines,
+      });
+      notify("success", "Prescription PDF generated and stored.");
+      setLines([]);
+    } catch (e) {
+      notify("error", getErrorMessage(e));
+    }
+  };
+  return (
+    <div className="panel">
+      <h1>Generate Prescription</h1>
+      <div className="doctor-grid">
+        <section>
+          <div className="field">
+            <label>Patient with appointment today</label>
+            <Dropdown
+              options={patients}
+              value={appointmentId}
+              onOptionSelected={(x) => setAppointmentId(x.appointment_id)}
+              labelProcessor={(x) => `${x.name} · ${x.email}`}
+              valueProcessor={(x) => x.appointment_id}
+              placeholder="Select patient"
+            />
+          </div>
+          <div className="form-grid">
+            <div className="field">
+              <label>Age (auto-calculated, editable)</label>
+              <input
+                type="number"
+                min="0"
+                max="150"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Medicine search</label>
+              <div className="medicine-search">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search medicine..."
+                />
+                {results.length > 0 && (
+                  <div className="medicine-results">
+                    {results.map((m) => (
+                      <button
+                        type="button"
+                        key={m.id}
+                        onClick={() => selectMedicine(m)}
+                      >
+                        {m.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="field">
+            <label>Selected medicine</label>
+            <input value={line.medicineName} readOnly />
+          </div>
+          <div className="form-grid">
+            <div className="field">
+              <label>Dose</label>
+              <input
+                value={line.dose}
+                onChange={(e) =>
+                  setLine((x) => ({ ...x, dose: e.target.value }))
+                }
+              />
+            </div>
+            <div className="field">
+              <label>Other condition / instruction</label>
+              <textarea
+                rows="3"
+                value={line.instruction}
+                onChange={(e) =>
+                  setLine((x) => ({ ...x, instruction: e.target.value }))
+                }
+              />
+            </div>
+            <div className="field">
+              <label>Medicine taking time</label>
+              <div className="toggles">
+                {["morning", "afternoon", "evening", "night"].map((t) => (
+                  <button
+                    type="button"
+                    key={t}
+                    className={`toggle ${line.timing.includes(t) ? "on" : ""}`}
+                    onClick={() => toggle(t)}
+                  >
+                    {t}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className={`toggle ${line.sos ? "on" : ""}`}
+                  onClick={() => setLine((x) => ({ ...x, sos: !x.sos }))}
+                >
+                  SOS
+                </button>
+              </div>
+            </div>
+            <div className="field">
+              <label>Food timing</label>
+              <Dropdown
+                options={["Before food", "with food", "after food"]}
+                value={line.foodTiming}
+                onOptionSelected={(x) =>
+                  setLine((v) => ({ ...v, foodTiming: x }))
+                }
+                placeholder="Select food timing"
+              />
+            </div>
+          </div>
+          <button className="btn" onClick={add}>
+            Add medicine
+          </button>
+        </section>
+        <section>
+          <h2>Prescription medicines</h2>
+          <div className="prescription-lines">
+            {!lines.length && (
+              <div className="muted">No medicines added yet.</div>
+            )}
+            {lines.map((m, i) => (
+              <div className="prescription-line" key={`${m.medicineName}-${i}`}>
+                <b>
+                  {i + 1}. {m.medicineName}
+                </b>
+                <div>Dose: {m.dose}</div>
+                <div>Timing: {m.timing.join(", ")}</div>
+                <div>Food: {m.foodTiming}</div>
+                <div>{m.sos ? "SOS: Yes" : "SOS: No"}</div>
+                {m.instruction && <div>Instruction: {m.instruction}</div>}
+                <button className="btn secondary" onClick={() => remove(i)}>
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+          <br />
+          <button className="btn" onClick={generate} disabled={!lines.length}>
+            Generate prescription PDF
+          </button>
+        </section>
+      </div>
+    </div>
+  );
+}

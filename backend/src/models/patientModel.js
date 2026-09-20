@@ -1,1 +1,1 @@
-export const patientModel={name:'patients'};
+export const patientModel = { name: "patients" };

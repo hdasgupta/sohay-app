@@ -1,1 +1,1 @@
-export const userModel={name:'users'};
+export const userModel = { name: "users" };

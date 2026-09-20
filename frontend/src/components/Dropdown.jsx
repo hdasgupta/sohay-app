@@ -1,1 +1,33 @@
-import './Dropdown.css'; export default function Dropdown({options=[],value,onOptionSelected,labelProcessor=o=>String(o?.label??o?.name??o),valueProcessor=o=>o?.value??o?.id??o,placeholder='Select...',disabled=false}){const selected=value==null?'':String(value);return <select className='dropdown' value={selected} disabled={disabled} onChange={e=>onOptionSelected?.(options.find(o=>String(valueProcessor(o))===e.target.value))}><option value='' disabled>{placeholder}</option>{options.map((o,i)=><option key={String(valueProcessor(o)??i)} value={valueProcessor(o)}>{labelProcessor(o)}</option>)}</select>}
+import "./Dropdown.css";
+export default function Dropdown({
+  options = [],
+  value,
+  onOptionSelected,
+  labelProcessor = (o) => String(o?.label ?? o?.name ?? o),
+  valueProcessor = (o) => o?.value ?? o?.id ?? o,
+  placeholder = "Select...",
+  disabled = false,
+}) {
+  const selected = value == null ? "" : String(value);
+  return (
+    <select
+      className="dropdown"
+      value={selected}
+      disabled={disabled}
+      onChange={(e) =>
+        onOptionSelected?.(
+          options.find((o) => String(valueProcessor(o)) === e.target.value),
+        )
+      }
+    >
+      <option value="" disabled>
+        {placeholder}
+      </option>
+      {options.map((o, i) => (
+        <option key={String(valueProcessor(o) ?? i)} value={valueProcessor(o)}>
+          {labelProcessor(o)}
+        </option>
+      ))}
+    </select>
+  );
+}

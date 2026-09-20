@@ -1,2 +1,133 @@
-import {useState} from 'react'; import {Link,useNavigate} from 'react-router-dom'; import {api,getErrorMessage} from '../../api/client'; import {useApp} from '../../context/AppContext'; import PasswordInput from '../../components/PasswordInput'; import Captcha from '../../components/Captcha'; import {validPassword} from '../../utils/validation'; import useCountdown from '../../utils/useCountdown'; import './Auth.css';
-export default function ResetPassword(){const[email,setEmail]=useState('');const[pw,setPw]=useState('');const[cpw,setCpw]=useState('');const[captcha,setCaptcha]=useState({});const[answer,setAnswer]=useState('');const[otp,setOtp]=useState('');const[token,setToken]=useState('');const[expires,setExpires]=useState(0);const{notify}=useApp();const nav=useNavigate();const remain=useCountdown(expires);const send=async()=>{try{const r=await api.post('/otp/request',{email,purpose:'reset',captchaId:captcha.id,captchaAnswer:answer});setExpires(r.data.expiresAt);notify('success',r.data.message)}catch(e){notify('error',getErrorMessage(e))}};const verify=async()=>{try{const r=await api.post('/otp/verify',{email,purpose:'reset',otp});setToken(r.data.otpVerificationToken);notify('success',r.data.message)}catch(e){notify('error',getErrorMessage(e))}};const submit=async e=>{e.preventDefault();if(!validPassword(pw)||pw!==cpw||!token||remain<=0)return notify('warning','Complete password rules and valid OTP verification first.');try{await api.post('/auth/password/reset',{email,password:pw,confirmPassword:cpw,captchaId:captcha.id,captchaAnswer:answer,otpVerificationToken:token});notify('success','Password reset successfully.');nav('/login')}catch(e){notify('error',getErrorMessage(e))}};return <div className='auth-shell'><form className='auth-card' onSubmit={submit}><div className='brand'><img src='/logo.svg' alt='logo'/><div><h1>Reset Password</h1><div className='muted'>Email must exist in the user database</div></div></div><div className='field'><label>Email</label><input type='email' value={email} onChange={e=>setEmail(e.target.value)} required/></div><Captcha onReady={setCaptcha}/><div className='field'><label>Captcha</label><input value={answer} onChange={e=>setAnswer(e.target.value)} required/></div><div className='field'><label>OTP</label><div className='otp-row'><input value={otp} onChange={e=>setOtp(e.target.value)} maxLength={6}/><button type='button' className='btn secondary' onClick={send}>Send</button><button type='button' className='btn secondary' onClick={verify}>Verify</button></div></div>{expires>0&&<div className='otp-timer'>OTP remaining: {remain} seconds</div>}<div className='form-grid'><div className='field'><label>Password</label><PasswordInput value={pw} onChange={setPw}/></div><div className='field'><label>Confirm password</label><PasswordInput value={cpw} onChange={setCpw}/></div></div><button className='btn' type='submit'>Reset password</button><div className='auth-links'><Link to='/login'>Back to login</Link></div></form></div>}
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { api, getErrorMessage } from "../../api/client";
+import { useApp } from "../../context/AppContext";
+import PasswordInput from "../../components/PasswordInput";
+import Captcha from "../../components/Captcha";
+import { validPassword } from "../../utils/validation";
+import useCountdown from "../../utils/useCountdown";
+import "./Auth.css";
+export default function ResetPassword() {
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [cpw, setCpw] = useState("");
+  const [captcha, setCaptcha] = useState({});
+  const [answer, setAnswer] = useState("");
+  const [otp, setOtp] = useState("");
+  const [token, setToken] = useState("");
+  const [expires, setExpires] = useState(0);
+  const { notify } = useApp();
+  const nav = useNavigate();
+  const remain = useCountdown(expires);
+  const send = async () => {
+    try {
+      const r = await api.post("/otp/request", {
+        email,
+        purpose: "reset",
+        captchaId: captcha.id,
+        captchaAnswer: answer,
+      });
+      setExpires(r.data.expiresAt);
+      notify("success", r.data.message);
+    } catch (e) {
+      notify("error", getErrorMessage(e));
+    }
+  };
+  const verify = async () => {
+    try {
+      const r = await api.post("/otp/verify", { email, purpose: "reset", otp });
+      setToken(r.data.otpVerificationToken);
+      notify("success", r.data.message);
+    } catch (e) {
+      notify("error", getErrorMessage(e));
+    }
+  };
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!validPassword(pw) || pw !== cpw || !token || remain <= 0)
+      return notify(
+        "warning",
+        "Complete password rules and valid OTP verification first.",
+      );
+    try {
+      await api.post("/auth/password/reset", {
+        email,
+        password: pw,
+        confirmPassword: cpw,
+        captchaId: captcha.id,
+        captchaAnswer: answer,
+        otpVerificationToken: token,
+      });
+      notify("success", "Password reset successfully.");
+      nav("/login");
+    } catch (e) {
+      notify("error", getErrorMessage(e));
+    }
+  };
+  return (
+    <div className="auth-shell">
+      <form className="auth-card" onSubmit={submit}>
+        <div className="brand">
+          <img src="/logo.svg" alt="logo" />
+          <div>
+            <h1>Reset Password</h1>
+            <div className="muted">Email must exist in the user database</div>
+          </div>
+        </div>
+        <div className="field">
+          <label>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <Captcha onReady={setCaptcha} />
+        <div className="field">
+          <label>Captcha</label>
+          <input
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            required
+          />
+        </div>
+        <div className="field">
+          <label>OTP</label>
+          <div className="otp-row">
+            <input
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              maxLength={6}
+            />
+            <button type="button" className="btn secondary" onClick={send}>
+              Send
+            </button>
+            <button type="button" className="btn secondary" onClick={verify}>
+              Verify
+            </button>
+          </div>
+        </div>
+        {expires > 0 && (
+          <div className="otp-timer">OTP remaining: {remain} seconds</div>
+        )}
+        <div className="form-grid">
+          <div className="field">
+            <label>Password</label>
+            <PasswordInput value={pw} onChange={setPw} />
+          </div>
+          <div className="field">
+            <label>Confirm password</label>
+            <PasswordInput value={cpw} onChange={setCpw} />
+          </div>
+        </div>
+        <button className="btn" type="submit">
+          Reset password
+        </button>
+        <div className="auth-links">
+          <Link to="/login">Back to login</Link>
+        </div>
+      </form>
+    </div>
+  );
+}

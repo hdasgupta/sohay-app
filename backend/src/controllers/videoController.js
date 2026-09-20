@@ -1,2 +1,22 @@
-import {uploadVideo} from '../services/googleDriveService.js';
-export async function recording(req,res){if(!Buffer.isBuffer(req.body)||!req.body.length)return res.status(400).json({message:'Recording body is empty.'});try{const file=await uploadVideo({fileName:`appointment-${Date.now()}.webm`,buffer:req.body});res.status(201).json({message:file?'Recording uploaded to Google Drive.':'Google Drive is not configured; recording upload skipped.',file})}catch(e){console.error('[DRIVE] recording upload',e);res.status(502).json({message:'Recording upload failed.'})}}
+import { uploadVideo } from "../services/googleDriveService.js";
+export async function recording(req, res) {
+  if (!Buffer.isBuffer(req.body) || !req.body.length)
+    return res.status(400).json({ message: "Recording body is empty." });
+  try {
+    const file = await uploadVideo({
+      fileName: `appointment-${Date.now()}.webm`,
+      buffer: req.body,
+    });
+    res
+      .status(201)
+      .json({
+        message: file
+          ? "Recording uploaded to Google Drive."
+          : "Google Drive is not configured; recording upload skipped.",
+        file,
+      });
+  } catch (e) {
+    console.error("[DRIVE] recording upload", e);
+    res.status(502).json({ message: "Recording upload failed." });
+  }
+}

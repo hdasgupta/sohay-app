@@ -1,3 +1,23 @@
-import jwt from 'jsonwebtoken'; import {env} from '../config/env.js';
-export function authenticate(req,res,next){try{const h=req.get('authorization')||'';const token=h.startsWith('Bearer ')?h.slice(7):'';if(!token)return res.status(401).json({message:'Authentication required.'});req.user=jwt.verify(token,env.jwtSecret);next()}catch(e){console.error('[AUTH]',e.message);res.status(401).json({message:'Session expired or invalid.'})}}
-export function allowRoles(...roles){return(req,res,next)=>roles.includes(req.user?.role)?next():res.status(403).json({message:'You do not have permission for this action.'})}
+import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
+export function authenticate(req, res, next) {
+  try {
+    const h = req.get("authorization") || "";
+    const token = h.startsWith("Bearer ") ? h.slice(7) : "";
+    if (!token)
+      return res.status(401).json({ message: "Authentication required." });
+    req.user = jwt.verify(token, env.jwtSecret);
+    next();
+  } catch (e) {
+    console.error("[AUTH]", e.message);
+    res.status(401).json({ message: "Session expired or invalid." });
+  }
+}
+export function allowRoles(...roles) {
+  return (req, res, next) =>
+    roles.includes(req.user?.role)
+      ? next()
+      : res
+          .status(403)
+          .json({ message: "You do not have permission for this action." });
+}

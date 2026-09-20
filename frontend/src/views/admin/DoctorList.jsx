@@ -1,2 +1,82 @@
-import {useEffect,useState} from 'react'; import {Link} from 'react-router-dom'; import {api,getErrorMessage} from '../../api/client'; import {useApp} from '../../context/AppContext'; import Pagination from '../../components/Pagination'; import './Admin.css';
-export default function DoctorList(){const[items,setItems]=useState([]);const[page,setPage]=useState(1);const[perPage,setPerPage]=useState(5);const{notify}=useApp();const load=()=>api.get('/admin/doctors').then(r=>setItems(r.data.items)).catch(e=>notify('error',getErrorMessage(e)));useEffect(load,[]);const toggle=async d=>{try{await api.patch(`/admin/doctors/${d.id}/disabled`,{disabled:!d.is_disabled});notify('success',d.is_disabled?'Doctor enabled.':'Doctor disabled.');load()}catch(e){notify('error',getErrorMessage(e))}};return <div><div className='page-title'><div><h1>Doctor List</h1><div className='muted'>Disabled doctors are excluded from patient booking.</div></div><Link className='btn' to='/admin'>Add Doctor</Link></div><Pagination items={items} page={page} setPage={setPage} perPage={perPage} setPerPage={setPerPage}/><div className='cards'>{items.slice((page-1)*perPage,page*perPage).map(d=><div className='card' key={d.id}><h3>{d.name}</h3><p>{d.speciality}</p><p className='muted'>{d.email}</p><p>{d.is_disabled?'Disabled':'Enabled'} · {d.availability_count} ranges</p><div className='inline-actions'><Link className='btn secondary' to={`/admin/doctors/${d.id}/edit`}>Edit</Link><button className='btn secondary' onClick={()=>toggle(d)}>{d.is_disabled?'Enable':'Disable'}</button></div></div>)}</div><Pagination items={items} page={page} setPage={setPage} perPage={perPage} setPerPage={setPerPage}/></div>}
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { api, getErrorMessage } from "../../api/client";
+import { useApp } from "../../context/AppContext";
+import Pagination from "../../components/Pagination";
+import "./Admin.css";
+export default function DoctorList() {
+  const [items, setItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
+  const { notify } = useApp();
+  const load = () =>
+    api
+      .get("/admin/doctors")
+      .then((r) => setItems(r.data.items))
+      .catch((e) => notify("error", getErrorMessage(e)));
+  useEffect(load, []);
+  const toggle = async (d) => {
+    try {
+      await api.patch(`/admin/doctors/${d.id}/disabled`, {
+        disabled: !d.is_disabled,
+      });
+      notify("success", d.is_disabled ? "Doctor enabled." : "Doctor disabled.");
+      load();
+    } catch (e) {
+      notify("error", getErrorMessage(e));
+    }
+  };
+  return (
+    <div>
+      <div className="page-title">
+        <div>
+          <h1>Doctor List</h1>
+          <div className="muted">
+            Disabled doctors are excluded from patient booking.
+          </div>
+        </div>
+        <Link className="btn" to="/admin">
+          Add Doctor
+        </Link>
+      </div>
+      <Pagination
+        items={items}
+        page={page}
+        setPage={setPage}
+        perPage={perPage}
+        setPerPage={setPerPage}
+      />
+      <div className="cards">
+        {items.slice((page - 1) * perPage, page * perPage).map((d) => (
+          <div className="card" key={d.id}>
+            <h3>{d.name}</h3>
+            <p>{d.speciality}</p>
+            <p className="muted">{d.email}</p>
+            <p>
+              {d.is_disabled ? "Disabled" : "Enabled"} · {d.availability_count}{" "}
+              ranges
+            </p>
+            <div className="inline-actions">
+              <Link
+                className="btn secondary"
+                to={`/admin/doctors/${d.id}/edit`}
+              >
+                Edit
+              </Link>
+              <button className="btn secondary" onClick={() => toggle(d)}>
+                {d.is_disabled ? "Enable" : "Disable"}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <Pagination
+        items={items}
+        page={page}
+        setPage={setPage}
+        perPage={perPage}
+        setPerPage={setPerPage}
+      />
+    </div>
+  );
+}

@@ -1,2 +1,121 @@
-import {useEffect,useState} from 'react'; import {api,getErrorMessage} from '../../api/client'; import {useApp} from '../../context/AppContext'; import Dropdown from '../../components/Dropdown'; import Datepicker from '../../components/Datepicker'; import './Patient.css';
-export default function BookAppointment(){const{session,notify}=useApp();const[doctors,setDoctors]=useState([]);const[families,setFamilies]=useState([]);const[doctorId,setDoctorId]=useState('');const[date,setDate]=useState('');const[slot,setSlot]=useState('');const[beneficiary,setBeneficiary]=useState(session.user.id);const[slots,setSlots]=useState([]);useEffect(()=>{Promise.all([api.get('/admin/doctors/active'),api.get('/patient/families')]).then(([d,f])=>{setDoctors(d.data.items);setFamilies(f.data.items)}).catch(e=>notify('error',getErrorMessage(e)))},[]);useEffect(()=>{if(!doctorId||!date)return;api.get(`/patient/appointments/availability?doctorId=${doctorId}&date=${date}&beneficiaryPatientId=${beneficiary}`).then(r=>{setSlots(r.data.items);setSlot('')}).catch(e=>notify('error',getErrorMessage(e)))},[doctorId,date]);const members=[...new Map(families.map(x=>[x.patient_id,x])).values()].map(x=>({id:x.patient_id,name:x.patient_name}));const people=[{id:session.user.id,name:session.user.name},...members.filter(x=>x.id!==session.user.id)];const submit=async()=>{try{const r=await api.post('/patient/appointments',{beneficiaryPatientId:Number(beneficiary),doctorId:Number(doctorId),date,startTime:slot,familyMemberId:Number(beneficiary)});notify('success',r.data.message)}catch(e){notify('error',getErrorMessage(e))}};return <div className='panel'><h1>Book Appointment</h1><div className='form-grid'><div className='field'><label>Patient / family member</label><Dropdown options={people} value={beneficiary} onOptionSelected={x=>setBeneficiary(x.id)} labelProcessor={x=>`${x.name}${x.id===session.user.id?' (Self)':' (Family)'}`} valueProcessor={x=>x.id} placeholder='Select patient'/></div><div className='field'><label>Doctor</label><Dropdown options={doctors} value={doctorId} onOptionSelected={x=>setDoctorId(x.id)} labelProcessor={x=>`${x.name} · ${x.speciality}`} placeholder='Select doctor'/></div><div className='field'><label>Date</label><Datepicker value={date} startDate={new Date().toISOString().slice(0,10)} endDate={new Date(Date.now()+365*86400000).toISOString().slice(0,10)} onDateSelect={setDate}/></div><div className='field'><label>Available 30-minute slot</label><Dropdown options={slots.map(v=>({label:v,value:v}))} value={slot} onOptionSelected={x=>setSlot(x.value)} labelProcessor={x=>x.label} valueProcessor={x=>x.value} placeholder='Select slot' disabled={!slots.length}/></div></div><br/><button className='btn' disabled={!doctorId||!date||!slot} onClick={submit}>Book appointment</button></div>}
+import { useEffect, useState } from "react";
+import { api, getErrorMessage } from "../../api/client";
+import { useApp } from "../../context/AppContext";
+import Dropdown from "../../components/Dropdown";
+import Datepicker from "../../components/Datepicker";
+import "./Patient.css";
+export default function BookAppointment() {
+  const { session, notify } = useApp();
+  const [doctors, setDoctors] = useState([]);
+  const [families, setFamilies] = useState([]);
+  const [doctorId, setDoctorId] = useState("");
+  const [date, setDate] = useState("");
+  const [slot, setSlot] = useState("");
+  const [beneficiary, setBeneficiary] = useState(session.user.id);
+  const [slots, setSlots] = useState([]);
+  useEffect(() => {
+    Promise.all([
+      api.get("/admin/doctors/active"),
+      api.get("/patient/families"),
+    ])
+      .then(([d, f]) => {
+        setDoctors(d.data.items);
+        setFamilies(f.data.items);
+      })
+      .catch((e) => notify("error", getErrorMessage(e)));
+  }, []);
+  useEffect(() => {
+    if (!doctorId || !date) return;
+    api
+      .get(
+        `/patient/appointments/availability?doctorId=${doctorId}&date=${date}&beneficiaryPatientId=${beneficiary}`,
+      )
+      .then((r) => {
+        setSlots(r.data.items);
+        setSlot("");
+      })
+      .catch((e) => notify("error", getErrorMessage(e)));
+  }, [doctorId, date]);
+  const members = [
+    ...new Map(families.map((x) => [x.patient_id, x])).values(),
+  ].map((x) => ({ id: x.patient_id, name: x.patient_name }));
+  const people = [
+    { id: session.user.id, name: session.user.name },
+    ...members.filter((x) => x.id !== session.user.id),
+  ];
+  const submit = async () => {
+    try {
+      const r = await api.post("/patient/appointments", {
+        beneficiaryPatientId: Number(beneficiary),
+        doctorId: Number(doctorId),
+        date,
+        startTime: slot,
+        familyMemberId: Number(beneficiary),
+      });
+      notify("success", r.data.message);
+    } catch (e) {
+      notify("error", getErrorMessage(e));
+    }
+  };
+  return (
+    <div className="panel">
+      <h1>Book Appointment</h1>
+      <div className="form-grid">
+        <div className="field">
+          <label>Patient / family member</label>
+          <Dropdown
+            options={people}
+            value={beneficiary}
+            onOptionSelected={(x) => setBeneficiary(x.id)}
+            labelProcessor={(x) =>
+              `${x.name}${x.id === session.user.id ? " (Self)" : " (Family)"}`
+            }
+            valueProcessor={(x) => x.id}
+            placeholder="Select patient"
+          />
+        </div>
+        <div className="field">
+          <label>Doctor</label>
+          <Dropdown
+            options={doctors}
+            value={doctorId}
+            onOptionSelected={(x) => setDoctorId(x.id)}
+            labelProcessor={(x) => `${x.name} · ${x.speciality}`}
+            placeholder="Select doctor"
+          />
+        </div>
+        <div className="field">
+          <label>Date</label>
+          <Datepicker
+            value={date}
+            startDate={new Date().toISOString().slice(0, 10)}
+            endDate={new Date(Date.now() + 365 * 86400000)
+              .toISOString()
+              .slice(0, 10)}
+            onDateSelect={setDate}
+          />
+        </div>
+        <div className="field">
+          <label>Available 30-minute slot</label>
+          <Dropdown
+            options={slots.map((v) => ({ label: v, value: v }))}
+            value={slot}
+            onOptionSelected={(x) => setSlot(x.value)}
+            labelProcessor={(x) => x.label}
+            valueProcessor={(x) => x.value}
+            placeholder="Select slot"
+            disabled={!slots.length}
+          />
+        </div>
+      </div>
+      <br />
+      <button
+        className="btn"
+        disabled={!doctorId || !date || !slot}
+        onClick={submit}
+      >
+        Book appointment
+      </button>
+    </div>
+  );
+}
