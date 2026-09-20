@@ -1,0 +1,37 @@
+.captcha-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.captcha-image {
+  flex: 1;
+  min-height: 92px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: #0b1b33;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.captcha-image.loading {
+  opacity: 0.5;
+}
+.captcha-image svg {
+  width: 100%;
+  height: auto;
+  max-height: 100px;
+  pointer-events: none;
+}
+
+.captcha-refresh {
+  height: 44px;
+  font-size: 19px;
+  padding: 0 14px;
+}
+
+.captcha-field .req {
+  color: var(--danger);
+}

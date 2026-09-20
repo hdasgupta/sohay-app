@@ -1,7 +1,0 @@
-import { seedAdmin } from "./seedAdmin.js";
-import { seedMedicinesIfEmpty } from "./seedMedicines.js";
-import { pool } from "../src/config/db.js";
-await seedAdmin();
-await seedMedicinesIfEmpty();
-await pool.end();
-console.log("[DB] seed complete");

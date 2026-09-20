@@ -1,0 +1,13 @@
+.login-page .auth-card {
+  animation: slideInFromLeft 0.4s ease;
+}
+
+.login-theme-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.login-page .req {
+  color: var(--danger);
+}
