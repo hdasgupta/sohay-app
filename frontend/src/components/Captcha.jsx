@@ -6,7 +6,6 @@ export default function Captcha({ onReady, onError }) {
   const load = async () => {
     try {
       const r = await api.get("/captcha");
-      alert(JSON.stringify(r));
       setData(r.data);
       onReady?.(r.data);
     } catch (e) {
