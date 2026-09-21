@@ -21,7 +21,7 @@ export const createApp = () => {
     cors({
       origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-        if (env.corsOrigins.length === 0 || env.corsOrigins.includes(origin) || origin === env.frontendUrl) {
+        if (env.corsOrigins.length === 0 || env.corsOrigins.includes(origin) || origin === env.frontendUrl || /\.vercel\.app$/.test(origin) || /localhost\:$/.test(origin)) {
           return callback(null, true);
         }
         console.warn(`[cors] allowing unlisted origin ${origin}`);
