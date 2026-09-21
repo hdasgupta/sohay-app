@@ -56,6 +56,7 @@ export const env = {
     fromName: process.env.MAIL_FROM_NAME || 'West Bengal Forum for Mental Health',
     from: process.env.MAIL_FROM || process.env.SMTP_USER,
   },
+  resendApiKey: process.env.RESEND_API_KEY, 
 
   s3: {
     endpoint: process.env.AWS_ENDPOINT_URL_S3,
