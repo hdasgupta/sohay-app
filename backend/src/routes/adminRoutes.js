@@ -1,26 +1,21 @@
-import { Router } from "express";
-import { authenticate, allowRoles } from "../middleware/auth.js";
-import {
-  doctors,
-  patients,
-  patientVisibleDoctors,
-  doctorDetails,
-  saveDoctor,
-  toggleDoctor,
-  upcoming,
-  availableSlots,
-  reschedule,
-} from "../controllers/adminController.js";
-const r = Router();
-r.use(authenticate);
-r.get("/doctors", allowRoles("admin"), doctors);
-r.get("/patients", allowRoles("admin"), patients);
-r.get("/doctors/active", allowRoles("admin", "patient"), patientVisibleDoctors);
-r.get("/doctors/:id", allowRoles("admin"), doctorDetails);
-r.post("/doctors", allowRoles("admin"), saveDoctor);
-r.put("/doctors/:id", allowRoles("admin"), saveDoctor);
-r.patch("/doctors/:id/disabled", allowRoles("admin"), toggleDoctor);
-r.get("/appointments/upcoming", allowRoles("admin"), upcoming);
-r.get("/appointments/availability", allowRoles("admin"), availableSlots);
-r.patch("/appointments/reschedule", allowRoles("admin"), reschedule);
-export default r;
+import { Router } from 'express';
+import * as adminController from '../controllers/adminController.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
+import { ROLES, requireAuth, requireRole } from '../middleware/auth.js';
+
+const router = Router();
+router.use(requireAuth, requireRole(ROLES.ADMIN));
+
+router.get('/slot-catalog', asyncHandler(adminController.getSlotCatalog));
+router.post('/doctors', asyncHandler(adminController.createDoctor));
+router.get('/doctors', asyncHandler(adminController.listDoctors));
+router.get('/doctors/options', asyncHandler(adminController.listDoctorOptions));
+router.get('/doctors/:doctorId', asyncHandler(adminController.getDoctor));
+router.put('/doctors/:doctorId', asyncHandler(adminController.updateDoctor));
+router.patch('/doctors/:doctorId/disabled', asyncHandler(adminController.setDoctorDisabled));
+router.get('/patients/options', asyncHandler(adminController.listPatientOptions));
+router.get('/appointments/upcoming', asyncHandler(adminController.findUpcomingAppointment));
+router.get('/appointments/slots', asyncHandler(adminController.getSlotsForReschedule));
+router.patch('/appointments/:appointmentId/reschedule', asyncHandler(adminController.rescheduleAppointment));
+
+export default router;

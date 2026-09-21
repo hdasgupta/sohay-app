@@ -1,108 +1,121 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { useApp } from "./context/AppContext";
-import MessageBox from "./components/MessageBox";
-import Layout from "./components/Layout";
-import Login from "./views/auth/Login";
-import RegisterPatient from "./views/auth/RegisterPatient";
-import ResetPassword from "./views/auth/ResetPassword";
-import AddDoctor from "./views/admin/AddDoctor";
-import DoctorList from "./views/admin/DoctorList";
-import RescheduleAppointment from "./views/admin/RescheduleAppointment";
-import BookAppointment from "./views/patient/BookAppointment";
-import FamilyManagement from "./views/patient/FamilyManagement";
-import PatientAppointments from "./views/patient/PatientAppointments";
-import GeneratePrescription from "./views/doctor/GeneratePrescription";
-import DoctorAppointments from "./views/doctor/DoctorAppointments";
-import VideoRoom from "./views/doctor/VideoRoom";
-import "./styles.css";
-function Protected({ role, children }) {
-  const { session } = useApp();
-  if (!session) return <Navigate to="/login" replace />;
-  if (role && session.user.role !== role)
-    return <Navigate to={`/${session.user.role}`} replace />;
-  return children;
-}
-function Public({ children }) {
-  const { session } = useApp();
-  return session ? <Navigate to={`/${session.user.role}`} replace /> : children;
-}
-export default function App() {
-  const { message, setMessage } = useApp();
-  return (
-    <BrowserRouter>
-      <MessageBox message={message} onClose={() => setMessage(null)} />
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            <Public>
-              <Login />
-            </Public>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <Public>
-              <RegisterPatient />
-            </Public>
-          }
-        />
-        <Route
-          path="/reset-password"
-          element={
-            <Public>
-              <ResetPassword />
-            </Public>
-          }
-        />
-        <Route
-          element={
-            <Protected>
-              <Layout />
-            </Protected>
-          }
-        >
-          <Route path="/video/:roomId" element={<VideoRoom />} />
-        </Route>
-        <Route
-          path="/admin"
-          element={
-            <Protected role="admin">
-              <Layout />
-            </Protected>
-          }
-        >
-          <Route index element={<AddDoctor />} />
-          <Route path="doctors" element={<DoctorList />} />
-          <Route path="doctors/:id/edit" element={<AddDoctor />} />
-          <Route path="reschedule" element={<RescheduleAppointment />} />
-        </Route>
-        <Route
-          path="/patient"
-          element={
-            <Protected role="patient">
-              <Layout />
-            </Protected>
-          }
-        >
-          <Route index element={<BookAppointment />} />
-          <Route path="family" element={<FamilyManagement />} />
-          <Route path="appointments" element={<PatientAppointments />} />
-        </Route>
-        <Route
-          path="/doctor"
-          element={
-            <Protected role="doctor">
-              <Layout />
-            </Protected>
-          }
-        >
-          <Route index element={<GeneratePrescription />} />
-          <Route path="appointments" element={<DoctorAppointments />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
+import { Navigate, Route, Routes } from 'react-router-dom';
+import AppLayout from './layouts/AppLayout';
+import ProtectedRoute from './components/ProtectedRoute';
+import LoginPage from './pages/common/LoginPage';
+import RegisterPatientPage from './pages/common/RegisterPatientPage';
+import ResetPasswordPage from './pages/common/ResetPasswordPage';
+import NotFoundPage from './pages/common/NotFoundPage';
+import ConsultationPage from './pages/common/ConsultationPage';
+import AddDoctorPage from './pages/admin/AddDoctorPage';
+import DoctorListPage from './pages/admin/DoctorListPage';
+import RescheduleAppointmentPage from './pages/admin/RescheduleAppointmentPage';
+import BookAppointmentPage from './pages/patient/BookAppointmentPage';
+import ManageFamilyPage from './pages/patient/ManageFamilyPage';
+import PatientAppointmentListPage from './pages/patient/PatientAppointmentListPage';
+import GeneratePrescriptionPage from './pages/doctor/GeneratePrescriptionPage';
+import DoctorAppointmentListPage from './pages/doctor/DoctorAppointmentListPage';
+import { useAuth } from './context/AuthContext';
+
+const HomeRedirect = () => {
+  const { isAuthenticated, defaultPage, ready } = useAuth();
+  if (!ready) return null;
+  return <Navigate to={isAuthenticated ? defaultPage : '/login'} replace />;
+};
+
+const App = () => (
+  <Routes>
+    <Route path="/" element={<HomeRedirect />} />
+    <Route path="/login" element={<LoginPage />} />
+    <Route path="/register" element={<RegisterPatientPage />} />
+    <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+    <Route
+      element={
+        <ProtectedRoute>
+          <AppLayout />
+        </ProtectedRoute>
+      }
+    >
+      <Route
+        path="/admin/add-doctor"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <AddDoctorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/add-doctor/:doctorId"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <AddDoctorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/doctor-list"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <DoctorListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/reschedule"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <RescheduleAppointmentPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/patient/book-appointment"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT']}>
+            <BookAppointmentPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/patient/manage-family"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT']}>
+            <ManageFamilyPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/patient/appointment-list"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT']}>
+            <PatientAppointmentListPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/doctor/generate-prescription"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <GeneratePrescriptionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/appointment-list"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <DoctorAppointmentListPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/consultation/:appointmentId" element={<ConsultationPage />} />
+    </Route>
+
+    <Route path="*" element={<NotFoundPage />} />
+  </Routes>
+);
+
+export default App;

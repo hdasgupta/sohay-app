@@ -1,5 +1,38 @@
 {
-  "name":"appointment-backend","version":"1.0.0","private":true,"type":"module",
-  "scripts":{"dev":"node --watch src/main.js","start":"node src/main.js","db:reset":"node scripts/dbReset.js","db:seed":"node scripts/dbSeed.js","lint:syntax":"find src scripts -name '*.js' -print0 | xargs -0 -n1 node --check"},"engines":{"node":">=22.0.0"},
-  "dependencies":{"@aws-sdk/client-s3":"^3.1136.0","@aws-sdk/s3-request-presigner":"^3.1136.0","axios":"^1.20.0","bcryptjs":"^3.0.3","cors":"^2.8.6","dotenv":"^18.0.1","express":"^5.2.1","express-rate-limit":"^8.7.0","googleapis":"^181.0.0","helmet":"^8.3.0","jsonwebtoken":"^9.0.3","nanoid":"^6.0.1","nodemailer":"^10.0.10","pdfkit":"^0.20.2","pg":"^8.23.0"}
+  "name": "wbffmh-appointment-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Appointment booking backend for West Bengal Forum for Mental Health",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "db:init": "node src/db/init.js",
+    "job:cancel": "node src/jobs/runCancelJobOnce.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1136.0",
+    "@aws-sdk/s3-request-presigner": "^3.1136.0",
+    "axios": "^1.20.0",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "csv-parse": "^7.0.2",
+    "dotenv": "^18.0.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "googleapis": "^181.0.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.12.1",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^10.0.10",
+    "pdfkit": "^0.20.2",
+    "pg": "^8.23.0",
+    "svg-captcha": "^1.4.0"
+  }
 }

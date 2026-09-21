@@ -1,0 +1,98 @@
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 300;
+  width: 100%;
+  background: linear-gradient(180deg, var(--surface-strong), var(--surface));
+  border-bottom: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px);
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px clamp(12px, 2.4vw, 26px);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.hamburger {
+  width: 40px;
+  height: 36px;
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  justify-items: stretch;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  cursor: pointer;
+}
+.hamburger span {
+  height: 2px;
+  background: var(--text-soft);
+  border-radius: 2px;
+}
+.hamburger:hover span {
+  background: var(--primary);
+}
+
+.user-block {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+.user-name {
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.user-email {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-top-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.role-chip {
+  text-transform: capitalize;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px clamp(12px, 2.4vw, 26px);
+}
+.header-brand img {
+  width: 40px;
+  height: 40px;
+}
+.brand-name {
+  margin: 0;
+  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  background: linear-gradient(120deg, var(--text), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (max-width: 620px) {
+  .header-top-right {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}

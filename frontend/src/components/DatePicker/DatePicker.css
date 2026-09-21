@@ -1,0 +1,116 @@
+.datepicker {
+  position: relative;
+}
+
+.datepicker-input {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14.5px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.datepicker-input:hover:not(.is-disabled) {
+  border-color: var(--border-strong);
+}
+.datepicker-input.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.datepicker-input .placeholder {
+  color: var(--text-muted);
+}
+
+.datepicker-pop {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(320px, 92vw);
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.18s ease;
+}
+
+.datepicker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.datepicker-head > button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 17px;
+  cursor: pointer;
+}
+.dp-month {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.dp-month select {
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.datepicker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.dp-weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.dp-cell {
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.dp-cell:hover:not(.disabled):not(.empty) {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+.dp-cell.disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+  background: transparent;
+}
+.dp-cell.empty {
+  background: transparent;
+  cursor: default;
+}
+.dp-cell.selected {
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  color: #fff;
+  font-weight: 700;
+}

@@ -1,108 +1,77 @@
-import { pool } from "../config/db.js";
-import {
-  findUserByEmail,
-  updatePasswordByEmail,
-} from "../../scripts/sql/generalQueries.js";
-import {
-  createPatientUser,
-  createPatientRole,
-} from "../../scripts/sql/patientQueries.js";
-import { consumeCaptcha } from "../services/captchaService.js";
-import {
-  verifyOtpVerification,
-  hashPassword,
-} from "../services/authService.js";
-import { allowedSexes, strongPassword } from "../utils/validation.js";
-export async function registerPatient(req, res) {
-  const b = req.body;
-  const email = String(b.email || "")
-    .trim()
-    .toLowerCase();
-  if (!consumeCaptcha(b.captchaId, b.captchaAnswer))
-    return res.status(400).json({ message: "Invalid captcha." });
-  if (!allowedSexes.has(b.sex))
-    return res.status(400).json({ message: "Invalid sex value." });
-  if (
-    !/^\d{4}-\d{2}-\d{2}$/.test(String(b.dateOfBirth || "")) ||
-    String(b.dateOfBirth) > new Date().toISOString().slice(0, 10)
-  )
-    return res.status(400).json({ message: "Invalid date of birth." });
-  if (!strongPassword.test(String(b.password || "")))
-    return res
-      .status(400)
-      .json({ message: "Password does not meet all password rules." });
-  if (b.password !== b.confirmPassword)
-    return res
-      .status(400)
-      .json({ message: "Password and confirmation do not match." });
-  verifyOtpVerification(b.otpVerificationToken, email, "register");
-  const exists = await pool.query(findUserByEmail, [
-    email,
-    "admin",
-    "patient",
-    "doctor",
-    1,
+import { createCaptcha, assertCaptcha } from '../utils/captcha.js';
+import { assertContactNumber, assertEnum, assertISODate, normalizeEmail, requireFields } from '../middleware/validate.js';
+import * as authService from '../services/authService.js';
+import { PASSWORD_RULES } from '../utils/password.js';
+
+const SEX_VALUES = ['MALE', 'FEMALE', 'OTHER'];
+const OTP_PURPOSES = ['REGISTER', 'RESET_PASSWORD'];
+
+export const getCaptcha = async (req, res) => {
+  const captcha = createCaptcha();
+  res.json({ success: true, data: captcha });
+};
+
+export const getPasswordRules = async (req, res) => {
+  res.json({ success: true, data: PASSWORD_RULES.map(({ key, label }) => ({ key, label })) });
+};
+
+export const login = async (req, res) => {
+  requireFields(req.body, ['email', 'password', 'captchaToken', 'captchaAnswer']);
+  assertCaptcha(req.body.captchaToken, req.body.captchaAnswer);
+  const email = normalizeEmail(req.body.email);
+  const result = await authService.login({ email, password: req.body.password });
+  res.json({ success: true, message: `Welcome back, ${result.user.name}`, data: result });
+};
+
+export const sendOtp = async (req, res) => {
+  requireFields(req.body, ['email', 'purpose']);
+  const email = normalizeEmail(req.body.email);
+  const purpose = assertEnum(req.body.purpose, OTP_PURPOSES, 'OTP purpose');
+  const data =
+    purpose === 'REGISTER' ? await authService.sendRegistrationOtp(email) : await authService.sendResetOtp(email);
+  res.json({ success: true, message: `OTP sent to ${email}. It is valid for 10 minutes.`, data });
+};
+
+export const registerPatient = async (req, res) => {
+  requireFields(req.body, [
+    'name',
+    'sex',
+    'dateOfBirth',
+    'email',
+    'contactNumber',
+    'password',
+    'confirmPassword',
+    'otp',
+    'captchaToken',
+    'captchaAnswer',
   ]);
-  if (exists.rowCount)
-    return res.status(409).json({ message: "Email is already registered." });
-  const client = await pool.connect();
-  try {
-    await client.query(beginTransaction);
-    const u = await client.query(createPatientUser, [
-      String(b.name).trim(),
-      email,
-      await hashPassword(b.password),
-      false,
-    ]);
-    await client.query(createPatientRole, [
-      u.rows[0].id,
-      b.sex,
-      b.dateOfBirth,
-      String(b.contactNumber).trim(),
-    ]);
-    await client.query(commitTransaction);
-    console.log("[AUTH] patient created", email);
-    res
-      .status(201)
-      .json({ message: "Patient registration completed successfully." });
-  } catch (e) {
-    await client.query(rollbackTransaction);
-    throw e;
-  } finally {
-    client.release();
-  }
-}
-export async function resetPassword(req, res) {
-  const b = req.body;
-  const email = String(b.email || "")
-    .trim()
-    .toLowerCase();
-  if (!consumeCaptcha(b.captchaId, b.captchaAnswer))
-    return res.status(400).json({ message: "Invalid captcha." });
-  if (!strongPassword.test(String(b.password || "")))
-    return res
-      .status(400)
-      .json({ message: "Password does not meet all password rules." });
-  if (b.password !== b.confirmPassword)
-    return res
-      .status(400)
-      .json({ message: "Password and confirmation do not match." });
-  verifyOtpVerification(b.otpVerificationToken, email, "reset");
-  const exists = await pool.query(findUserByEmail, [
-    email,
-    "admin",
-    "patient",
-    "doctor",
-    1,
-  ]);
-  if (!exists.rowCount)
-    return res
-      .status(404)
-      .json({ message: "Email does not exist in the user database." });
-  await pool.query(updatePasswordByEmail, [
-    await hashPassword(b.password),
-    email,
-  ]);
-  console.log("[AUTH] password reset", email);
-  res.json({ message: "Password reset completed successfully." });
-}
+  assertCaptcha(req.body.captchaToken, req.body.captchaAnswer);
+  const data = await authService.registerPatient({
+    name: String(req.body.name).trim(),
+    email: normalizeEmail(req.body.email),
+    password: req.body.password,
+    confirmPassword: req.body.confirmPassword,
+    sex: assertEnum(req.body.sex, SEX_VALUES, 'Sex'),
+    dateOfBirth: assertISODate(req.body.dateOfBirth, 'Date of birth'),
+    contactNumber: assertContactNumber(req.body.contactNumber),
+    otp: req.body.otp,
+  });
+  res.status(201).json({ success: true, message: 'Registration successful. You can login now.', data });
+};
+
+export const resetPassword = async (req, res) => {
+  requireFields(req.body, ['email', 'password', 'confirmPassword', 'otp', 'captchaToken', 'captchaAnswer']);
+  assertCaptcha(req.body.captchaToken, req.body.captchaAnswer);
+  await authService.resetPassword({
+    email: normalizeEmail(req.body.email),
+    password: req.body.password,
+    confirmPassword: req.body.confirmPassword,
+    otp: req.body.otp,
+  });
+  res.json({ success: true, message: 'Password reset successfully. Please login with the new password.' });
+};
+
+export const me = async (req, res) => {
+  const data = await authService.getProfile(req.user);
+  res.json({ success: true, data: { ...data, defaultPage: authService.DEFAULT_PAGE_BY_ROLE[req.user.role] } });
+};

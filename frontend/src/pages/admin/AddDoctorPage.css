@@ -1,0 +1,84 @@
+.add-doctor-page .section-title {
+  margin-top: 18px;
+  font-size: 16px;
+  border-top: 1px dashed var(--border);
+  padding-top: 16px;
+}
+
+.add-doctor-page .req {
+  color: var(--danger);
+}
+
+.slot-builder {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  align-items: end;
+  margin: 12px 0 6px;
+}
+
+.slot-builder .slot-add {
+  height: 44px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.week-day {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  padding: 12px;
+  min-height: 108px;
+}
+.week-day.has-slots {
+  border-color: var(--border-strong);
+}
+
+.week-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.slot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.slot-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  border: 1px solid var(--border-strong);
+}
+.slot-list li button {
+  border: none;
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.form-actions {
+  margin-top: 20px;
+  border-top: 1px dashed var(--border);
+  padding-top: 16px;
+}

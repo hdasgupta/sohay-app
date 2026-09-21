@@ -1,0 +1,23 @@
+.family-page .surface {
+  margin-bottom: 16px;
+}
+
+.family-page .block-title {
+  font-size: 15.5px;
+  margin-bottom: 10px;
+  color: var(--accent);
+}
+
+.family-page .family-create-row input {
+  max-width: 360px;
+}
+
+.family-page .invite-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.family-page .invite-inbox {
+  border-color: var(--warning);
+}

@@ -1,0 +1,44 @@
+.eh-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(3, 9, 20, 0.7);
+  backdrop-filter: blur(5px);
+}
+
+.eh-box {
+  width: min(560px, 100%);
+  background: var(--surface-strong);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px;
+  animation: fadeUp 0.25s ease;
+}
+
+.eh-title {
+  color: var(--danger);
+  font-size: 18px;
+}
+
+.eh-message {
+  color: var(--text-soft);
+  font-size: 14px;
+  word-break: break-word;
+}
+
+.eh-details {
+  margin: 10px 0 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.eh-details pre {
+  max-height: 180px;
+  overflow: auto;
+  background: var(--surface-2);
+  padding: 10px;
+  border-radius: 8px;
+}
