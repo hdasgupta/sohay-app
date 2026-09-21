@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { readItem, removeItem, writeItem } from '../utils/safeStorage';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://sohay-app.onrender.com/api';
 export const STORAGE_KEY = 'wbffmh.auth';
 
 /**
