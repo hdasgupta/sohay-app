@@ -37,7 +37,6 @@ export const writeStoredAuth = (value) => {
     console.error('[http] could not persist login information', error);
   }
 };
-alert(BASE_URL);
 const httpClient = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,
