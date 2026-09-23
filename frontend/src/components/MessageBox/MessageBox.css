@@ -1,98 +1,13 @@
-.msg-stack {
-  position: fixed;
-  /* Kept below the sticky header so the header controls stay reachable. */
-  top: 96px;
-  right: 16px;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: min(380px, calc(100vw - 32px));
-}
-
-.msg {
-  position: relative;
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 13px 14px 16px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
-  background: var(--surface-strong);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  animation: slideInFromLeft 0.28s ease;
-}
-
-.msg.leaving {
-  animation: slideOutToRight 0.3s ease forwards;
-}
-
-.msg-icon {
-  flex: 0 0 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.msg-body {
-  flex: 1;
-  min-width: 0;
-}
-.msg-title {
-  display: block;
-  font-size: 13px;
-  letter-spacing: 0.3px;
-}
-.msg-text {
-  font-size: 13.5px;
-  color: var(--text-soft);
-  word-break: break-word;
-}
-
-.msg-close {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 19px;
-  line-height: 1;
-  cursor: pointer;
-}
-.msg-close:hover {
-  color: var(--text);
-}
-
-.msg-progress {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 3px;
-  width: 100%;
-  animation-name: shrinkBar;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-
-.msg-info    { border-left: 4px solid var(--info); }
-.msg-success { border-left: 4px solid var(--success); }
-.msg-warning { border-left: 4px solid var(--warning); }
-.msg-error   { border-left: 4px solid var(--danger); }
-
-.msg-info    .msg-icon { background: var(--info); }
-.msg-success .msg-icon { background: var(--success); }
-.msg-warning .msg-icon { background: var(--warning); }
-.msg-error   .msg-icon { background: var(--danger); }
-
-.msg-info    .msg-progress { background: var(--info); }
-.msg-success .msg-progress { background: var(--success); }
-.msg-warning .msg-progress { background: var(--warning); }
-.msg-error   .msg-progress { background: var(--danger); }
-
-.msg-info    .msg-title { color: var(--info); }
-.msg-success .msg-title { color: var(--success); }
-.msg-warning .msg-title { color: var(--warning); }
-.msg-error   .msg-title { color: var(--danger); }
+.mb-stack { position: fixed; bottom: 16px; right: 16px; z-index: 1100; display: flex; flex-direction: column-reverse; gap: 10px; width: min(420px, calc(100vw - 32px)); pointer-events: none; }
+.mb-toast { --tone: var(--info); --tone-soft: var(--info-soft); position: relative; overflow: hidden; pointer-events: auto; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 14px 14px 18px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--tone); box-shadow: var(--shadow-lg); animation: mb-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.mb-success { --tone: var(--success); --tone-soft: var(--success-soft); }
+.mb-warning { --tone: var(--warning); --tone-soft: var(--warning-soft); }
+.mb-error { --tone: var(--danger); --tone-soft: var(--danger-soft); }
+@keyframes mb-in { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+.mb-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--tone-soft); color: var(--tone); }
+.mb-title { display: block; color: var(--tone); font-size: 0.9rem; }
+.mb-text { margin: 2px 0 0; color: var(--text); font-size: 0.9rem; word-break: break-word; }
+.mb-close { border: 0; background: transparent; color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 0 4px; }
+.mb-close:hover { color: var(--text); }
+.mb-progress { position: absolute; left: 0; bottom: 0; height: 4px; width: 100%; background: var(--tone); transform-origin: left; animation-name: mb-progress; animation-timing-function: linear; animation-fill-mode: forwards; }
+@keyframes mb-progress { from { transform: scaleX(1); } to { transform: scaleX(0); } }

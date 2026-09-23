@@ -1,60 +1,77 @@
-/* ============================================================
-   Theme tokens. Dark + blueish is the default; [data-theme="light"]
-   overrides the same variables so every component follows along.
-   ============================================================ */
+/* Design tokens. Dark bluish theme is the default; light theme via [data-theme='light'] */
 :root,
 [data-theme='dark'] {
-  --bg: #060d1c;
-  --bg-soft: #0a1730;
-  --surface: rgba(16, 32, 61, 0.86);
-  --surface-2: rgba(23, 44, 82, 0.72);
-  --surface-strong: #10203d;
-  --border: rgba(126, 178, 255, 0.18);
-  --border-strong: rgba(126, 178, 255, 0.4);
-  --text: #e8f1ff;
-  --text-soft: #a9c0e2;
-  --text-muted: #7c92b5;
-  --primary: #3b8cff;
-  --primary-strong: #1b6ae0;
-  --primary-soft: rgba(59, 140, 255, 0.16);
-  --accent: #6ee7ff;
+  --bg: #070f24;
+  --bg-gradient: radial-gradient(1200px 600px at 10% -10%, #1b3a7a55, transparent 60%),
+                 radial-gradient(900px 500px at 110% 10%, #0e7c8640, transparent 60%), #070f24;
+  --surface: #0f1b3d;
+  --surface-2: #142452;
+  --surface-3: #1b2f66;
+  --glass: rgba(20, 36, 82, 0.72);
+  --border: #24386f;
+  --border-strong: #35509a;
+  --text: #e8eeff;
+  --text-muted: #9fb0d9;
+  --text-faint: #6f80ab;
+  --primary: #4f8cff;
+  --primary-strong: #2f6bff;
+  --primary-soft: rgba(79, 140, 255, 0.16);
+  --accent: #2dd4bf;
+  --accent-soft: rgba(45, 212, 191, 0.15);
   --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.14);
   --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.14);
   --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
   --info: #60a5fa;
-  --shadow: 0 18px 46px rgba(0, 0, 0, 0.45);
-  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.3);
-  --radius: 16px;
-  --radius-sm: 10px;
-  --glow: 0 0 0 4px rgba(59, 140, 255, 0.18);
-  --app-gradient: radial-gradient(1200px 600px at 12% -10%, #14335f 0%, transparent 60%),
-    radial-gradient(900px 520px at 100% 0%, #10294f 0%, transparent 55%), linear-gradient(180deg, #060d1c, #040912);
+  --info-soft: rgba(96, 165, 250, 0.14);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --focus: 0 0 0 3px rgba(79, 140, 255, 0.45);
+  --input-bg: #0b1633;
   color-scheme: dark;
 }
 
 [data-theme='light'] {
-  --bg: #eef3fb;
-  --bg-soft: #ffffff;
-  --surface: rgba(255, 255, 255, 0.92);
-  --surface-2: rgba(232, 240, 253, 0.9);
-  --surface-strong: #ffffff;
-  --border: rgba(27, 79, 156, 0.16);
-  --border-strong: rgba(27, 79, 156, 0.32);
-  --text: #0d1f3c;
-  --text-soft: #3a5580;
-  --text-muted: #61789e;
-  --primary: #1b6ae0;
-  --primary-strong: #0f4fb0;
-  --primary-soft: rgba(27, 106, 224, 0.12);
-  --accent: #0e7490;
-  --success: #0f9d58;
+  --bg: #f3f6fd;
+  --bg-gradient: radial-gradient(1200px 600px at 10% -10%, #c7d8ff88, transparent 60%),
+                 radial-gradient(900px 500px at 110% 10%, #b8f1ea77, transparent 60%), #f3f6fd;
+  --surface: #ffffff;
+  --surface-2: #f0f4fd;
+  --surface-3: #e3eafb;
+  --glass: rgba(255, 255, 255, 0.82);
+  --border: #d5def3;
+  --border-strong: #b3c3ea;
+  --text: #13203f;
+  --text-muted: #4d5f8a;
+  --text-faint: #8391b3;
+  --primary: #2f6bff;
+  --primary-strong: #1d4fd6;
+  --primary-soft: rgba(47, 107, 255, 0.1);
+  --accent: #0d9488;
+  --accent-soft: rgba(13, 148, 136, 0.1);
+  --success: #059669;
+  --success-soft: rgba(5, 150, 105, 0.1);
   --warning: #b45309;
-  --danger: #c62828;
-  --info: #1b6ae0;
-  --shadow: 0 16px 40px rgba(16, 39, 82, 0.14);
-  --shadow-soft: 0 8px 20px rgba(16, 39, 82, 0.1);
-  --glow: 0 0 0 4px rgba(27, 106, 224, 0.14);
-  --app-gradient: radial-gradient(1100px 560px at 10% -10%, #d6e6ff 0%, transparent 60%),
-    radial-gradient(900px 480px at 100% 0%, #e3edff 0%, transparent 55%), linear-gradient(180deg, #eef3fb, #e7eefb);
+  --warning-soft: rgba(217, 119, 6, 0.12);
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.09);
+  --info: #2563eb;
+  --info-soft: rgba(37, 99, 235, 0.09);
+  --shadow: 0 10px 30px rgba(31, 55, 110, 0.1);
+  --shadow-lg: 0 24px 60px rgba(31, 55, 110, 0.18);
+  --focus: 0 0 0 3px rgba(47, 107, 255, 0.3);
+  --input-bg: #ffffff;
   color-scheme: light;
+}
+
+:root {
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+  --transition: 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  --header-h: 116px;
 }

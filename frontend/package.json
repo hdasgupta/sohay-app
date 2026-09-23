@@ -1,21 +1,30 @@
 {
-  "name": "wbffmh-appointment-frontend",
+  "name": "wbfmh-appointment-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "vite build",
-    "preview": "vite preview --host"
+    "dev": "vite --mode development",
+    "build": "vite build --mode production",
+    "build:dev": "vite build --mode development",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:perf": "vitest run tests/performance"
   },
   "dependencies": {
     "axios": "^1.20.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router-dom": "^7.18.4"
+    "react-router": "^8.4.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@vitejs/plugin-react": "^6.1.1",
-    "vite": "^8.3.0"
+    "jsdom": "^30.1.1",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
   }
 }

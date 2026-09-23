@@ -1,28 +1,32 @@
+/** Entry point: bootstrap DB (first run cleans + creates schema, seeds admin), import medicines, start jobs, listen. */
+import env from './src/config/env.js';
 import { createApp } from './src/app.js';
-import { env } from './src/config/env.js';
-import { bootstrapOnStartup } from './src/db/bootstrap.js';
-import { scheduleCancelJob } from './src/jobs/cancelPastAppointments.js';
+import { bootstrapDatabase } from './src/db/init.js';
+import { ensureMedicines } from './src/services/medicine.service.js';
+import { startAppointmentStatusJob, stopAppointmentStatusJob } from './src/jobs/appointmentStatus.job.js';
 import { pool } from './src/config/db.js';
+import logger from './src/utils/logger.js';
 
-const app = createApp();
+async function main() {
+  logger.info(`Starting API in ${env.nodeEnv} mode (TZ=${process.env.TZ})`);
+  await bootstrapDatabase();
+  const app = createApp();
+  const server = app.listen(env.port, () => logger.info(`API listening on port ${env.port}; frontend ${env.frontendUrl}`));
+  if (env.medicineImportOnStart) ensureMedicines(); // runs in background
+  if (env.enableCron) startAppointmentStatusJob();
 
-const server = app.listen(env.port, async () => {
-  console.log(`[server] listening on port ${env.port} (${env.nodeEnv})`);
-  console.log(`[server] frontend url: ${env.frontendUrl}`);
-  await bootstrapOnStartup();
-  scheduleCancelJob();
+  const shutdown = (signal) => {
+    logger.warn(`${signal} received - shutting down`);
+    stopAppointmentStatusJob();
+    server.close(() => pool.end().finally(() => process.exit(0)));
+    setTimeout(() => process.exit(1), 10000).unref();
+  };
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+}
+
+process.on('unhandledRejection', (err) => logger.error('Unhandled rejection', err));
+main().catch((err) => {
+  logger.error('Fatal startup error', err);
+  process.exit(1);
 });
-
-const shutdown = async (signal) => {
-  console.log(`[server] ${signal} received, shutting down`);
-  server.close(async () => {
-    await pool.end();
-    console.log('[server] closed cleanly');
-    process.exit(0);
-  });
-};
-
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('unhandledRejection', (reason) => console.error('[server] unhandled rejection:', reason));
-process.on('uncaughtException', (error) => console.error('[server] uncaught exception:', error));

@@ -1,0 +1,21 @@
+import { Router } from 'express';
+import h from '../utils/asyncHandler.js';
+import { authenticate, authorize } from '../middleware/auth.js';
+import { ROLES } from '../config/constants.js';
+import * as c from '../controllers/patient.controller.js';
+
+const r = Router();
+r.use(authenticate, authorize(ROLES.PATIENT));
+r.get('/doctors', h(c.listDoctors));
+r.get('/members', h(c.members));
+r.get('/slots', h(c.slots));
+r.get('/appointments', h(c.listAppointments));
+r.post('/appointments', h(c.book));
+r.patch('/appointments/:id/cancel', h(c.cancel));
+r.get('/family', h(c.getFamily));
+r.post('/family', h(c.createFamily));
+r.post('/family/leave', h(c.leaveFamily));
+r.post('/family/invitations', h(c.invite));
+r.post('/family/invitations/:id/respond', h(c.respond));
+r.delete('/family/invitations/:id', h(c.cancelInvitation));
+export default r;

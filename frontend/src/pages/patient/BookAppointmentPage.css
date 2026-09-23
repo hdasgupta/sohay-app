@@ -1,9 +1,0 @@
-.book-page .booked-box {
-  margin-top: 18px;
-  border-color: var(--border-strong);
-  animation: fadeUp 0.3s ease;
-}
-.book-page .booked-box h3 {
-  color: var(--success);
-  font-size: 16px;
-}

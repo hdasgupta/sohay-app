@@ -1,77 +1,64 @@
 import pg from 'pg';
-import { env } from './env.js';
+import env from './env.js';
+import logger from '../utils/logger.js';
+import { TRANSACTION_SQL } from '../scripts/transaction.sql.js';
 
-const { Pool } = pg;
+// Keep DATE / TIME / TIMESTAMP (without tz) as plain strings - no implicit timezone shifting.
+pg.types.setTypeParser(1082, (v) => v); // date        -> 'YYYY-MM-DD'
+pg.types.setTypeParser(1083, (v) => v); // time        -> 'HH:MM:SS'
+pg.types.setTypeParser(1114, (v) => v); // timestamp   -> string
+pg.types.setTypeParser(20, (v) => parseInt(v, 10)); // bigint/count -> number
 
-/**
- * Neon connection strings carry `sslmode` / `channel_binding` parameters. The
- * driver warns that those aliases change meaning in its next major version, so
- * they are removed here and TLS is configured explicitly instead.
- */
-const normalizeConnectionString = (value) => {
-  try {
-    const url = new URL(value);
-    ['sslmode', 'channel_binding'].forEach((key) => url.searchParams.delete(key));
-    return url.toString();
-  } catch (error) {
-    console.warn('[db] could not normalise the database url, using it unchanged:', error.message);
-    return value;
-  }
-};
+function buildConfig() {
+  const url = new URL(env.databaseUrl);
+  // pg does not understand channel_binding in the URL; it negotiates SCRAM-SHA-256-PLUS itself.
+  const channelBinding = url.searchParams.get('channel_binding');
+  url.searchParams.delete('channel_binding');
+  const sslmode = url.searchParams.get('sslmode');
+  url.searchParams.delete('sslmode');
+  const useSsl = env.dbSsl || sslmode === 'require';
+  return {
+    connectionString: url.toString(),
+    ssl: useSsl ? { rejectUnauthorized: true } : false,
+    max: env.dbPoolMax,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 20000,
+    keepAlive: true,
+    enableChannelBinding: channelBinding === 'require',
+  };
+}
 
-export const pool = new Pool({
-  connectionString: normalizeConnectionString(env.databaseUrl),
-  ssl: env.pgSsl ? { rejectUnauthorized: false } : false,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 15000,
-});
+export const pool = new pg.Pool(buildConfig());
+pool.on('error', (err) => logger.error('Unexpected PostgreSQL pool error', err.message));
 
-pool.on('error', (error) => {
-  console.error('[db] idle client error:', error.message);
-});
-
-/**
- * Run a parameterized query. Every literal value MUST arrive through `params`.
- */
-export const query = async (text, params = []) => {
-  const startedAt = Date.now();
+/** Run a parameterised query. */
+export async function query(text, params = []) {
+  const started = Date.now();
   try {
     const result = await pool.query(text, params);
-    console.log(`[db] ok rows=${result.rowCount} in ${Date.now() - startedAt}ms :: ${oneLine(text)}`);
+    const ms = Date.now() - started;
+    if (ms > 1500) logger.warn(`Slow query (${ms} ms): ${text.split('\n')[0].slice(0, 120)}`);
     return result;
-  } catch (error) {
-    console.error(`[db] FAILED :: ${oneLine(text)} :: ${error.message}`);
-    throw error;
+  } catch (err) {
+    logger.error('Query failed:', err.message, '|', text.replace(/\s+/g, ' ').slice(0, 160));
+    throw err;
   }
-};
+}
 
-export const queryOne = async (text, params = []) => {
-  const result = await query(text, params);
-  return result.rows[0] || null;
-};
-
-/** Run several statements inside a single transaction. */
-export const withTransaction = async (handler) => {
+/** Run callback inside a transaction; callback receives a client with .query */
+export async function withTransaction(callback) {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    const result = await handler(client);
-    await client.query('COMMIT');
-    console.log('[db] transaction committed');
-    return result;
-  } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('[db] transaction rolled back:', error.message);
-    throw error;
+    await client.query(TRANSACTION_SQL.BEGIN);
+    const out = await callback(client);
+    await client.query(TRANSACTION_SQL.COMMIT);
+    return out;
+  } catch (err) {
+    await client.query(TRANSACTION_SQL.ROLLBACK).catch(() => {});
+    throw err;
   } finally {
     client.release();
   }
-};
+}
 
-export const healthCheck = async () => {
-  const row = await queryOne('SELECT NOW() AS now');
-  return row?.now || null;
-};
-
-const oneLine = (text) => String(text).replace(/\s+/g, ' ').trim().slice(0, 140);
+export default { pool, query, withTransaction };

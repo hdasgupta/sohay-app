@@ -1,83 +1,47 @@
-/**
- * scripts/doctor.sql.js
- * SQL used only by doctor features: own appointment listing and prescriptions.
- */
+/** SQL used by doctor controllers. */
+import { APPOINTMENT_SELECT_BASE } from './common.sql.js';
 
-export const SELECT_APPOINTMENTS_FOR_DOCTOR = `
-  SELECT a.id,
-         a.appointment_date,
-         TO_CHAR(a.start_time, $1) AS start_time,
-         TO_CHAR(a.end_time, $1)   AS end_time,
-         a.status,
-         a.room_id,
-         pu.name  AS patient_name,
-         pu.email AS patient_email,
-         p.sex,
-         p.date_of_birth,
-         pr.pdf_url
-  FROM appointments a
-  INNER JOIN users pu ON pu.id = a.patient_id
-  INNER JOIN patients p ON p.user_id = a.patient_id
-  LEFT JOIN prescriptions pr ON pr.appointment_id = a.id
-  WHERE a.doctor_id = $2
-  ORDER BY a.appointment_date DESC, a.start_time DESC
-`;
-
-export const SELECT_TODAY_APPOINTMENTS_FOR_DOCTOR = `
-  SELECT a.id,
-         TO_CHAR(a.start_time, $1) AS start_time,
-         a.status,
-         a.patient_id,
-         pu.name AS patient_name,
-         p.date_of_birth,
-         pr.id AS prescription_id
-  FROM appointments a
-  INNER JOIN users pu ON pu.id = a.patient_id
-  INNER JOIN patients p ON p.user_id = a.patient_id
-  LEFT JOIN prescriptions pr ON pr.appointment_id = a.id
-  WHERE a.doctor_id = $2
-    AND a.appointment_date = $3::DATE
-    AND a.status = ANY ($4::appointment_status[])
-  ORDER BY a.start_time ASC
-`;
-
-export const INSERT_PRESCRIPTION = `
-  INSERT INTO prescriptions (appointment_id, doctor_id, patient_id, patient_age, advice, pdf_key, pdf_url)
-  VALUES ($1, $2, $3, $4, $5, $6, $7)
-  RETURNING id, created_at
-`;
-
-export const INSERT_PRESCRIPTION_MEDICINE = `
-  INSERT INTO prescription_medicines (
-    prescription_id, medicine_name, dose, condition_note,
-    take_morning, take_afternoon, take_evening, take_night,
-    is_sos, food, position
-  )
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-  RETURNING id
-`;
-
-export const SELECT_PRESCRIPTION_BY_APPOINTMENT = `
-  SELECT id, pdf_key, pdf_url, created_at
-  FROM prescriptions
-  WHERE appointment_id = $1
-`;
-
-export const SELECT_PRESCRIPTION_FOR_DOWNLOAD = `
-  SELECT pr.id,
-         pr.pdf_key,
-         pr.pdf_url,
-         pr.doctor_id,
-         pr.patient_id,
-         a.booked_by_id
-  FROM prescriptions pr
-  INNER JOIN appointments a ON a.id = pr.appointment_id
-  WHERE pr.id = $1
-`;
-
-export const INSERT_MEDICINE_IF_MISSING = `
-  INSERT INTO medicines (name)
-  VALUES ($1)
-  ON CONFLICT (name) DO NOTHING
-  RETURNING id
-`;
+export const DOCTOR_SQL = Object.freeze({
+  APPOINTMENTS_FOR_DOCTOR: `${APPOINTMENT_SELECT_BASE}
+     WHERE a.doctor_id = $1
+     ORDER BY a.appointment_date DESC, a.start_time DESC, a.id DESC`,
+  TODAY_OPEN_APPOINTMENTS: `
+    SELECT a.id, a.patient_id, a.appointment_date, a.start_time, a.end_time, a.status,
+           u.name AS patient_name, u.email AS patient_email, p.sex AS patient_sex, p.date_of_birth
+      FROM appointments a
+      JOIN users u ON u.id = a.patient_id
+      JOIN patients p ON p.user_id = a.patient_id
+     WHERE a.doctor_id = $1 AND a.appointment_date = $2::date AND a.status = ANY($3::varchar[])
+     ORDER BY a.start_time`,
+  APPOINTMENT_LOCK_FOR_DOCTOR: `
+    SELECT a.id, a.patient_id, a.doctor_id, a.appointment_date, a.start_time, a.status
+      FROM appointments a
+     WHERE a.id = $1 AND a.doctor_id = $2
+       FOR UPDATE`,
+  APPOINTMENT_MARK_COMPLETED: `
+    UPDATE appointments
+       SET status = $2, updated_at = now()
+     WHERE id = $1 AND doctor_id = $3 AND status = ANY($4::varchar[])
+    RETURNING id`,
+  MEDICINE_SEARCH: `
+    SELECT id, name
+      FROM medicines
+     WHERE name ILIKE $1
+     ORDER BY (name ILIKE $2) DESC, length(name), name
+     LIMIT $3`,
+  SIGNATURE_UPDATE: `
+    UPDATE doctors SET signature = $2 WHERE user_id = $1`,
+  PRESCRIPTION_INSERT: `
+    INSERT INTO prescriptions (appointment_id, doctor_id, patient_id, patient_name, patient_age, prescribed_on, notes)
+    VALUES ($1, $2, $3, $4, $5, $6::date, $7)
+    RETURNING id, created_at`,
+  PRESCRIPTION_ITEMS_INSERT: `
+    INSERT INTO prescription_items
+           (prescription_id, position, medicine_name, dose, instructions, morning, afternoon, evening, night, sos, food_timing)
+    SELECT $1, t.position, t.medicine_name, t.dose, t.instructions, t.morning, t.afternoon, t.evening, t.night, t.sos, t.food_timing
+      FROM unnest($2::int[], $3::varchar[], $4::varchar[], $5::text[], $6::boolean[], $7::boolean[],
+                  $8::boolean[], $9::boolean[], $10::boolean[], $11::varchar[])
+           AS t(position, medicine_name, dose, instructions, morning, afternoon, evening, night, sos, food_timing)`,
+  PRESCRIPTION_SET_PDF: `
+    UPDATE prescriptions SET pdf_key = $2, pdf_url = $3 WHERE id = $1`,
+});

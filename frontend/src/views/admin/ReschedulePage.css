@@ -1,0 +1,4 @@
+.rs-pickers { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom: 18px; }
+.rs-body { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); align-items: start; }
+.rs-form { display: flex; flex-direction: column; gap: 16px; }
+.rs-empty { animation: pg-in 300ms ease-out; }

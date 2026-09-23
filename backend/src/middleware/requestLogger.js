@@ -1,5 +1,6 @@
 import morgan from 'morgan';
+import env from '../config/env.js';
 
-export const requestLogger = morgan(':method :url :status :res[content-length] - :response-time ms', {
-  stream: { write: (line) => console.log(`[http] ${line.trim()}`) },
-});
+export const requestLogger = env.isTest
+  ? (_req, _res, next) => next()
+  : morgan(env.isProduction ? 'combined' : 'dev');

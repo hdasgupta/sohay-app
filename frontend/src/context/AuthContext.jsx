@@ -1,79 +1,45 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { readStoredAuth, registerHttpHooks, writeStoredAuth } from '../api/httpClient';
-import { authApi } from '../api/authApi';
+import { loadAuth, saveAuth, clearAuth } from '../utils/authStorage.js';
+import { authBus, notify } from '../utils/eventBus.js';
+import logger from '../utils/logger.js';
 
 const AuthContext = createContext(null);
 
-export const DEFAULT_PAGE_BY_ROLE = {
-  ADMIN: '/admin/add-doctor',
-  PATIENT: '/patient/book-appointment',
-  DOCTOR: '/doctor/generate-prescription',
-};
+export function AuthProvider({ children }) {
+  const [auth, setAuth] = useState(() => loadAuth());
 
-export const AuthProvider = ({ children }) => {
-  // Login information is kept in local storage so the session survives reloads.
-  const [auth, setAuth] = useState(() => readStoredAuth());
-  const [ready, setReady] = useState(false);
+  const login = useCallback((data) => {
+    saveAuth(data);
+    setAuth(loadAuth());
+    logger.info(`Logged in as ${data.user.email} (${data.user.role})`);
+  }, []);
 
-  const logout = useCallback(() => {
-    console.log('[auth] logging out');
-    writeStoredAuth(null);
+  const logout = useCallback((reason) => {
+    clearAuth();
     setAuth(null);
+    logger.info('Logged out', reason || '');
   }, []);
 
+  useEffect(() => authBus.subscribe((e) => {
+    if (e.type === 'expired') {
+      setAuth(null);
+      notify.warning('Your session has expired. Please login again');
+    }
+  }), []);
+
+  // keep tabs in sync
   useEffect(() => {
-    registerHttpHooks({ onUnauthorized: () => logout() });
-  }, [logout]);
-
-  useEffect(() => {
-    const verify = async () => {
-      if (auth?.token) {
-        try {
-          const profile = await authApi.me();
-          setAuth((current) => {
-            const next = { ...current, user: { ...current.user, ...profile } };
-            writeStoredAuth(next);
-            return next;
-          });
-        } catch (error) {
-          console.warn('[auth] stored token is no longer valid', error.message);
-          writeStoredAuth(null);
-          setAuth(null);
-        }
-      }
-      setReady(true);
-    };
-    verify();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const onStorage = (e) => { if (e.key === 'wbfmh.auth') setAuth(loadAuth()); };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const login = useCallback((payload) => {
-    const next = { token: payload.token, user: payload.user, defaultPage: payload.defaultPage };
-    writeStoredAuth(next);
-    setAuth(next);
-    console.log('[auth] logged in as', payload.user?.role);
-    return next;
-  }, []);
-
-  const value = useMemo(
-    () => ({
-      token: auth?.token || null,
-      user: auth?.user || null,
-      role: auth?.user?.role || null,
-      defaultPage: auth?.defaultPage || DEFAULT_PAGE_BY_ROLE[auth?.user?.role] || '/login',
-      isAuthenticated: Boolean(auth?.token),
-      ready,
-      login,
-      logout,
-    }),
-    [auth, ready, login, logout],
-  );
-
+  const value = useMemo(() => ({ user: auth?.user || null, token: auth?.token || null, login, logout }), [auth, login, logout]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used inside AuthProvider');
-  return context;
-};
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  return ctx;
+}

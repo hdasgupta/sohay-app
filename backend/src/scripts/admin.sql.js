@@ -1,119 +1,63 @@
-/**
- * scripts/admin.sql.js
- * SQL used only by admin features: doctor creation / editing / listing,
- * enable-disable and appointment rescheduling.
- */
+/** SQL used by admin controllers. */
+import { APPOINTMENT_SELECT_BASE } from './common.sql.js';
 
-/* ------------------------------------------------------------- doctor crud */
+export const ADMIN_SQL = Object.freeze({
+  ADMIN_INSERT: `
+    INSERT INTO admins (user_id) VALUES ($1)
+    ON CONFLICT (user_id) DO NOTHING`,
 
-export const INSERT_DOCTOR = `
-  INSERT INTO doctors (user_id, sex, speciality)
-  VALUES ($1, $2, $3)
-  RETURNING user_id
-`;
+  // ---------- doctors ----------
+  DOCTOR_INSERT: `
+    INSERT INTO doctors (user_id, sex, speciality, signature)
+    VALUES ($1, $2, $3, $4)`,
+  DOCTOR_UPDATE: `
+    UPDATE doctors
+       SET sex = $2, speciality = $3, signature = COALESCE($4, signature)
+     WHERE user_id = $1`,
+  USER_UPDATE_NAME_EMAIL: `
+    UPDATE users
+       SET name = $2, email = lower($3), updated_at = now()
+     WHERE id = $1`,
+  USER_UPDATE_PASSWORD_BY_ID: `
+    UPDATE users
+       SET password_hash = $2, updated_at = now()
+     WHERE id = $1`,
+  USER_SET_DISABLED: `
+    UPDATE users
+       SET is_disabled = $2, updated_at = now()
+     WHERE id = $1 AND role = $3
+    RETURNING id, name, email, is_disabled`,
+  AVAILABILITY_DELETE_FOR_DOCTOR: `
+    DELETE FROM doctor_availability WHERE doctor_id = $1`,
+  AVAILABILITY_INSERT_MANY: `
+    INSERT INTO doctor_availability (doctor_id, weekday, start_time, end_time)
+    SELECT $1, t.weekday, t.start_time, t.end_time
+      FROM unnest($2::smallint[], $3::time[], $4::time[]) AS t(weekday, start_time, end_time)`,
+  DOCTORS_LIST_ALL: `
+    SELECT u.id, u.name, u.email, u.is_disabled, u.created_at, d.sex, d.speciality,
+           (d.signature IS NOT NULL) AS has_signature
+      FROM users u
+      JOIN doctors d ON d.user_id = u.id
+     ORDER BY u.name, u.id`,
 
-export const UPDATE_DOCTOR = `
-  UPDATE doctors
-  SET sex = $2,
-      speciality = $3
-  WHERE user_id = $1
-  RETURNING user_id
-`;
+  // ---------- patients ----------
+  PATIENTS_LIST_ALL: `
+    SELECT u.id, u.name, u.email, u.is_disabled, p.sex, p.date_of_birth, p.contact_number
+      FROM users u
+      JOIN patients p ON p.user_id = u.id
+     ORDER BY u.name, u.id`,
 
-export const DELETE_DOCTOR_AVAILABILITY = `
-  DELETE FROM doctor_availability
-  WHERE doctor_id = $1
-`;
-
-export const INSERT_DOCTOR_AVAILABILITY = `
-  INSERT INTO doctor_availability (doctor_id, weekday, start_time, end_time)
-  VALUES ($1, $2, $3, $4)
-  RETURNING id
-`;
-
-export const SELECT_DOCTORS_WITH_AVAILABILITY = `
-  SELECT u.id,
-         u.name,
-         u.email,
-         u.is_disabled,
-         u.created_at,
-         d.sex,
-         d.speciality,
-         COALESCE(
-           JSON_AGG(
-             JSON_BUILD_OBJECT(
-               'id', a.id,
-               'weekday', a.weekday,
-               'startTime', TO_CHAR(a.start_time, $1),
-               'endTime', TO_CHAR(a.end_time, $1)
-             )
-             ORDER BY a.weekday, a.start_time
-           ) FILTER (WHERE a.id IS NOT NULL),
-           $2::JSON
-         ) AS availability
-  FROM users u
-  INNER JOIN doctors d ON d.user_id = u.id
-  LEFT JOIN doctor_availability a ON a.doctor_id = d.user_id
-  WHERE u.role = $3
-    AND ($4::TEXT IS NULL OR u.name ILIKE $4 OR d.speciality ILIKE $4)
-  GROUP BY u.id, d.user_id
-  ORDER BY u.name ASC
-`;
-
-export const SELECT_ENABLED_DOCTORS = `
-  SELECT u.id,
-         u.name,
-         d.speciality
-  FROM users u
-  INNER JOIN doctors d ON d.user_id = u.id
-  WHERE u.role = $1
-    AND u.is_disabled = $2
-  ORDER BY u.name ASC
-`;
-
-/* ------------------------------------------------------- patient selectors */
-
-export const SELECT_ENABLED_PATIENTS = `
-  SELECT u.id,
-         u.name,
-         u.email
-  FROM users u
-  INNER JOIN patients p ON p.user_id = u.id
-  WHERE u.role = $1
-    AND u.is_disabled = $2
-  ORDER BY u.name ASC
-`;
-
-/* ------------------------------------------------------------ reschedining */
-
-export const SELECT_UPCOMING_APPOINTMENT_FOR_PAIR = `
-  SELECT a.id,
-         a.appointment_date,
-         TO_CHAR(a.start_time, $1) AS start_time,
-         TO_CHAR(a.end_time, $1)   AS end_time,
-         a.status,
-         a.room_id,
-         du.name AS doctor_name,
-         pu.name AS patient_name
-  FROM appointments a
-  INNER JOIN users du ON du.id = a.doctor_id
-  INNER JOIN users pu ON pu.id = a.patient_id
-  WHERE a.doctor_id = $2
-    AND a.patient_id = $3
-    AND a.status = ANY ($4::appointment_status[])
-    AND (a.appointment_date > $5::DATE
-         OR (a.appointment_date = $5::DATE AND a.start_time >= $6::TIME))
-  ORDER BY a.appointment_date ASC, a.start_time ASC
-  LIMIT $7
-`;
-
-export const UPDATE_APPOINTMENT_SCHEDULE = `
-  UPDATE appointments
-  SET appointment_date = $2,
-      start_time = $3,
-      end_time = $4,
-      status = $5,
-      updated_at = NOW()
-  WHERE id = $1
-  RETURNING id, appointment_date, start_time, end_time, status, room_id, doctor_id, patient_id
-`;
+  // ---------- reschedule ----------
+  UPCOMING_FOR_PATIENT_DOCTOR: `${APPOINTMENT_SELECT_BASE}
+     WHERE a.patient_id = $1
+       AND a.doctor_id = $2
+       AND a.status = ANY($3::varchar[])
+       AND (a.appointment_date > $4::date OR (a.appointment_date = $4::date AND a.start_time > $5::time))
+     ORDER BY a.appointment_date, a.start_time`,
+  APPOINTMENT_RESCHEDULE: `
+    UPDATE appointments
+       SET appointment_date = $2::date, start_time = $3::time, end_time = $4::time,
+           status = $5, reschedule_count = reschedule_count + $6, updated_at = now()
+     WHERE id = $1 AND status = ANY($7::varchar[])
+    RETURNING id`,
+});

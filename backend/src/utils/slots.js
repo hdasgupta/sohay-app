@@ -1,46 +1,46 @@
-/** Time slot helpers. A slot is always 30 minutes long. */
-export const SLOT_MINUTES = 30;
-export const TIME_FORMAT = 'HH24:MI';
+import { timeToMinutes, minutesToTime } from './date.js';
+import { SLOT_MINUTES } from '../config/constants.js';
+import AppError from './AppError.js';
 
-/** ['00:00', '00:30' ... '23:30'] */
-export const ALL_SLOT_STARTS = Array.from({ length: (24 * 60) / SLOT_MINUTES }, (_, index) =>
-  minutesToTime(index * SLOT_MINUTES),
-);
-
-/** ['00:30', '01:00' ... '24:00'] */
-export const ALL_SLOT_ENDS = ALL_SLOT_STARTS.map((time) => minutesToTime(timeToMinutes(time) + SLOT_MINUTES));
-
-export function timeToMinutes(time) {
-  const [hours, minutes] = String(time).split(':').map(Number);
-  return hours * 60 + (minutes || 0);
-}
-
-export function minutesToTime(totalMinutes) {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-}
-
-export const isAlignedSlot = (time) => /^\d{2}:\d{2}$/.test(time) && timeToMinutes(time) % SLOT_MINUTES === 0;
-
-/** Expand an availability window into its 30 minute slot starts. */
-export const expandWindow = (startTime, endTime) => {
-  const slots = [];
-  for (let m = timeToMinutes(startTime); m + SLOT_MINUTES <= timeToMinutes(endTime); m += SLOT_MINUTES) {
-    slots.push(minutesToTime(m));
+/** Break availability ranges into 30 minute slot start times */
+export function expandRanges(ranges) {
+  const out = [];
+  for (const r of ranges) {
+    const start = timeToMinutes(r.start_time ?? r.startTime);
+    const end = timeToMinutes(r.end_time ?? r.endTime);
+    for (let t = start; t + SLOT_MINUTES <= end; t += SLOT_MINUTES) out.push(minutesToTime(t));
   }
-  return slots;
-};
+  return [...new Set(out)].sort();
+}
 
-/** Expand many availability windows, de-duplicated and sorted. */
-export const expandWindows = (windows) => {
-  const set = new Set();
-  windows.forEach((w) => expandWindow(w.start_time || w.startTime, w.end_time || w.endTime).forEach((s) => set.add(s)));
-  return [...set].sort((a, b) => timeToMinutes(a) - timeToMinutes(b));
-};
-
-/** True when two [start,end) windows overlap. */
-export const windowsOverlap = (a, b) =>
-  timeToMinutes(a.startTime) < timeToMinutes(b.endTime) && timeToMinutes(b.startTime) < timeToMinutes(a.endTime);
-
-export const endOfSlot = (startTime) => minutesToTime(timeToMinutes(startTime) + SLOT_MINUTES);
+/**
+ * Validate weekday-wise availability coming from the Add / Edit doctor page.
+ * input: [{ weekday: 0-6, startTime: 'HH:MM', endTime: 'HH:MM' }]
+ */
+export function validateAvailability(list) {
+  if (!Array.isArray(list) || list.length === 0) {
+    throw AppError.badRequest('A doctor must have at least one time slot in the week');
+  }
+  const byDay = new Map();
+  for (const item of list) {
+    const weekday = Number(item.weekday);
+    const { startTime, endTime } = item;
+    if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) throw AppError.badRequest('Invalid weekday in availability');
+    const re = /^([01]\d|2[0-4]):(00|30)$/;
+    if (!re.test(startTime || '') || !re.test(endTime || '')) throw AppError.badRequest('Time slots must be on 30 minute boundaries (HH:MM)');
+    const s = timeToMinutes(startTime);
+    const e = timeToMinutes(endTime);
+    if (s >= 1440 || e > 1440 || e <= s) throw AppError.badRequest('End time must be after start time');
+    if (!byDay.has(weekday)) byDay.set(weekday, []);
+    byDay.get(weekday).push({ s, e });
+  }
+  for (const [weekday, ranges] of byDay) {
+    ranges.sort((a, b) => a.s - b.s);
+    for (let i = 1; i < ranges.length; i += 1) {
+      if (ranges[i].s < ranges[i - 1].e) {
+        throw AppError.badRequest(`Time slots overlap on weekday ${weekday}`, { weekday });
+      }
+    }
+  }
+  return list.map((i) => ({ weekday: Number(i.weekday), startTime: i.startTime, endTime: i.endTime }));
+}

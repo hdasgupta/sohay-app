@@ -1,161 +1,205 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { MONTHS, WEEKDAYS_SHORT } from '../../config/constants.js';
+import { toIso, parseIso, daysInMonth, formatDate, todayIso } from '../../utils/date.js';
 import './DatePicker.css';
 
-const WEEK_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-
-const toISO = (date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-const parseISO = (value) => {
-  if (!value) return null;
-  const [y, m, d] = value.split('-').map(Number);
-  return new Date(y, m - 1, d);
-};
+export const MIN_YEAR = 1900;
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
 /**
- * Custom calendar.
- *  startDate / endDate  : ISO strings, only dates inside the range are enabled
- *  enabledWeekdays      : array of 0..6, other weekdays are disabled
- *  onDateSelect         : (isoDate) => void
+ * Custom date picker.
+ * Views: days -> (click month) months -> (click year) decades -> years
+ * Year selection starts with decades (from 1900) then years of that decade.
+ * @param startDate      'YYYY-MM-DD' first selectable date (default 1900-01-01)
+ * @param endDate        'YYYY-MM-DD' last selectable date  (default 31 Dec of current year + 10)
+ * @param enabledWeekDays array of weekday numbers (0 = Sunday) that can be picked
+ * @param onDateSelect   (isoDate) => void
  */
-const DatePicker = ({
-  label,
-  value = '',
+export default function DatePicker({
   startDate,
   endDate,
-  enabledWeekdays = [0, 1, 2, 3, 4, 5, 6],
+  enabledWeekDays = ALL_DAYS,
   onDateSelect,
+  value = null,
+  label,
   placeholder = 'Select a date',
   required = false,
   disabled = false,
-}) => {
+  hint,
+  id,
+}) {
+  const autoId = useId();
+  const inputId = id || `dp-${autoId}`;
+  const min = startDate && startDate > `${MIN_YEAR}-01-01` ? startDate : `${MIN_YEAR}-01-01`;
+  const max = endDate || `${new Date().getFullYear() + 10}-12-31`;
+  const minP = parseIso(min);
+  const maxP = parseIso(max);
+  const enabled = useMemo(() => new Set(enabledWeekDays), [enabledWeekDays]);
+
+  const initial = () => {
+    const base = value || (todayIso() >= min && todayIso() <= max ? todayIso() : min);
+    const p = parseIso(base);
+    return { y: p.y, m: p.m };
+  };
   const [open, setOpen] = useState(false);
-  const [cursor, setCursor] = useState(() => parseISO(value) || parseISO(startDate) || new Date());
-  const wrapRef = useRef(null);
+  const [view, setView] = useState('days'); // days | months | decades | years
+  const [cursor, setCursor] = useState(initial);
+  const [decade, setDecade] = useState(Math.floor(initial().y / 10) * 10);
+  const rootRef = useRef(null);
 
   useEffect(() => {
-    const onClickOutside = (event) => {
-      if (wrapRef.current && !wrapRef.current.contains(event.target)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, []);
+    if (!open) return undefined;
+    const onDoc = (e) => { if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
+  }, [open]);
 
-  useEffect(() => {
-    if (value) setCursor(parseISO(value));
-  }, [value]);
-
-  const min = useMemo(() => parseISO(startDate), [startDate]);
-  const max = useMemo(() => parseISO(endDate), [endDate]);
-
-  const days = useMemo(() => {
-    const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-    const offset = first.getDay();
-    const total = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
-    const cells = Array.from({ length: offset }, () => null);
-    for (let day = 1; day <= total; day += 1) {
-      cells.push(new Date(cursor.getFullYear(), cursor.getMonth(), day));
-    }
-    return cells;
-  }, [cursor]);
-
-  const isEnabled = (date) => {
-    if (!date) return false;
-    if (min && date < new Date(min.getFullYear(), min.getMonth(), min.getDate())) return false;
-    if (max && date > new Date(max.getFullYear(), max.getMonth(), max.getDate())) return false;
-    return enabledWeekdays.includes(date.getDay());
+  const toggle = () => {
+    if (disabled) return;
+    if (!open) { const c = initial(); setCursor(c); setDecade(Math.floor(c.y / 10) * 10); setView('days'); }
+    setOpen((o) => !o);
   };
 
-  const pick = (date) => {
-    if (!isEnabled(date)) return;
-    const iso = toISO(date);
-    console.log('[DatePicker] selected', iso);
+  const isSelectable = (iso) => iso >= min && iso <= max && enabled.has(new Date(`${iso}T00:00:00Z`).getUTCDay());
+  const monthInRange = (y, m) => toIso(y, m, daysInMonth(y, m)) >= min && toIso(y, m, 1) <= max;
+  const yearInRange = (y) => y >= minP.y && y <= maxP.y;
+
+  const pick = (iso) => {
+    if (!isSelectable(iso)) return;
     onDateSelect?.(iso);
     setOpen(false);
   };
 
-  return (
-    <div className="field datepicker" ref={wrapRef}>
-      {label ? (
-        <label>
-          {label}
-          {required ? <span className="req"> *</span> : null}
-        </label>
-      ) : null}
-      <button
-        type="button"
-        className={`datepicker-input ${disabled ? 'is-disabled' : ''}`}
-        onClick={() => !disabled && setOpen((previous) => !previous)}
-        disabled={disabled}
-      >
-        <span className={value ? '' : 'placeholder'}>{value || placeholder}</span>
-        <span className="calendar-icon" aria-hidden="true">📅</span>
-      </button>
+  const shiftMonth = (delta) => setCursor(({ y, m }) => {
+    const d = new Date(Date.UTC(y, m + delta, 1));
+    return { y: d.getUTCFullYear(), m: d.getUTCMonth() };
+  });
+  const canShiftMonth = (delta) => {
+    const d = new Date(Date.UTC(cursor.y, cursor.m + delta, 1));
+    return monthInRange(d.getUTCFullYear(), d.getUTCMonth());
+  };
 
-      {open ? (
-        <div className="datepicker-pop">
-          <div className="datepicker-head">
-            <button type="button" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}>
-              ‹
-            </button>
-            <div className="dp-month">
-              <select
-                value={cursor.getMonth()}
-                onChange={(event) => setCursor(new Date(cursor.getFullYear(), Number(event.target.value), 1))}
-              >
-                {MONTHS.map((month, index) => (
-                  <option key={month} value={index}>
-                    {month}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={cursor.getFullYear()}
-                onChange={(event) => setCursor(new Date(Number(event.target.value), cursor.getMonth(), 1))}
-              >
-                {Array.from({ length: 121 }, (unused, index) => new Date().getFullYear() - 100 + index).map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button type="button" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}>
-              ›
-            </button>
+  // ------------------------------------------------ views
+  const renderDays = () => {
+    const first = new Date(Date.UTC(cursor.y, cursor.m, 1)).getUTCDay();
+    const count = daysInMonth(cursor.y, cursor.m);
+    const cells = [];
+    for (let i = 0; i < first; i += 1) cells.push(<span key={`b${i}`} className="dp-cell dp-blank" />);
+    for (let d = 1; d <= count; d += 1) {
+      const iso = toIso(cursor.y, cursor.m, d);
+      const ok = isSelectable(iso);
+      cells.push(
+        <button
+          type="button"
+          key={iso}
+          data-date={iso}
+          className={`dp-cell dp-day ${iso === value ? 'dp-selected' : ''} ${iso === todayIso() ? 'dp-today' : ''}`}
+          disabled={!ok}
+          onClick={() => pick(iso)}
+          aria-label={formatDate(iso)}
+          aria-pressed={iso === value}
+        >{d}</button>,
+      );
+    }
+    return (
+      <>
+        <div className="dp-head">
+          <button type="button" className="dp-nav" onClick={() => shiftMonth(-1)} disabled={!canShiftMonth(-1)} aria-label="Previous month">‹</button>
+          <div className="dp-title">
+            <button type="button" className="dp-title-btn" onClick={() => setView('months')} aria-label="Choose month">{MONTHS[cursor.m]}</button>
+            <button type="button" className="dp-title-btn" onClick={() => { setDecade(Math.floor(cursor.y / 10) * 10); setView('decades'); }} aria-label="Choose year">{cursor.y}</button>
           </div>
-
-          <div className="datepicker-grid">
-            {WEEK_LABELS.map((day) => (
-              <span key={day} className="dp-weekday">
-                {day}
-              </span>
-            ))}
-            {days.map((date, index) => {
-              if (!date) return <span key={`empty-${index}`} className="dp-cell empty" />;
-              const iso = toISO(date);
-              const enabled = isEnabled(date);
-              return (
-                <button
-                  key={iso}
-                  type="button"
-                  className={`dp-cell ${enabled ? '' : 'disabled'} ${value === iso ? 'selected' : ''}`}
-                  onClick={() => pick(date)}
-                  disabled={!enabled}
-                  title={enabled ? iso : 'Not available'}
-                >
-                  {date.getDate()}
-                </button>
-              );
-            })}
-          </div>
+          <button type="button" className="dp-nav" onClick={() => shiftMonth(1)} disabled={!canShiftMonth(1)} aria-label="Next month">›</button>
         </div>
-      ) : null}
+        <div className="dp-grid dp-grid-days">
+          {WEEKDAYS_SHORT.map((w, i) => <span key={w} className={`dp-weekday ${enabled.has(i) ? '' : 'dp-weekday-off'}`}>{w.slice(0, 2)}</span>)}
+          {cells}
+        </div>
+      </>
+    );
+  };
+
+  const renderMonths = () => (
+    <>
+      <div className="dp-head">
+        <span />
+        <div className="dp-title">
+          <button type="button" className="dp-title-btn" onClick={() => { setDecade(Math.floor(cursor.y / 10) * 10); setView('decades'); }} aria-label="Choose year">{cursor.y}</button>
+        </div>
+        <span />
+      </div>
+      <div className="dp-grid dp-grid-3">
+        {MONTHS.map((mName, m) => (
+          <button type="button" key={mName} className={`dp-cell dp-big ${m === cursor.m ? 'dp-selected' : ''}`} disabled={!monthInRange(cursor.y, m)}
+            onClick={() => { setCursor((c) => ({ ...c, m })); setView('days'); }}>{mName.slice(0, 3)}</button>
+        ))}
+      </div>
+    </>
+  );
+
+  const firstDecade = Math.floor(minP.y / 10) * 10;
+  const lastDecade = Math.floor(maxP.y / 10) * 10;
+  const renderDecades = () => {
+    const decades = [];
+    for (let d = firstDecade; d <= lastDecade; d += 10) decades.push(d);
+    return (
+      <>
+        <div className="dp-head"><span /><div className="dp-title"><span className="dp-title-static">Select decade</span></div><span /></div>
+        <div className="dp-grid dp-grid-3 dp-scroll">
+          {decades.map((d) => (
+            <button type="button" key={d} data-decade={d} className={`dp-cell dp-big ${Math.floor(cursor.y / 10) * 10 === d ? 'dp-selected' : ''}`}
+              onClick={() => { setDecade(d); setView('years'); }}>{d}s</button>
+          ))}
+        </div>
+      </>
+    );
+  };
+
+  const renderYears = () => {
+    const years = Array.from({ length: 10 }, (_, i) => decade + i);
+    return (
+      <>
+        <div className="dp-head">
+          <button type="button" className="dp-nav" onClick={() => setDecade((d) => d - 10)} disabled={decade - 10 < firstDecade} aria-label="Previous decade">‹</button>
+          <div className="dp-title"><button type="button" className="dp-title-btn" onClick={() => setView('decades')}>{decade} - {decade + 9}</button></div>
+          <button type="button" className="dp-nav" onClick={() => setDecade((d) => d + 10)} disabled={decade + 10 > lastDecade} aria-label="Next decade">›</button>
+        </div>
+        <div className="dp-grid dp-grid-3">
+          {years.map((y) => (
+            <button type="button" key={y} className={`dp-cell dp-big ${y === cursor.y ? 'dp-selected' : ''}`} disabled={!yearInRange(y)}
+              onClick={() => {
+                let m = cursor.m;
+                if (!monthInRange(y, m)) m = y === minP.y ? minP.m : maxP.m;
+                setCursor({ y, m });
+                setView('months');
+              }}>{y}</button>
+          ))}
+        </div>
+      </>
+    );
+  };
+
+  return (
+    <div className={`field datepicker ${open ? 'dp-open' : ''}`} ref={rootRef}>
+      {label && <label htmlFor={inputId} className={required ? 'required' : ''}>{label}</label>}
+      <button type="button" id={inputId} className={`input dp-input ${value ? '' : 'dp-placeholder'}`} onClick={toggle} disabled={disabled} aria-haspopup="dialog" aria-expanded={open}>
+        <span>{value ? formatDate(value) : placeholder}</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+      </button>
+      {hint && <span className="hint">{hint}</span>}
+      {open && (
+        <div className="dp-popup" role="dialog" aria-label="Choose date">
+          {view === 'days' && renderDays()}
+          {view === 'months' && renderMonths()}
+          {view === 'decades' && renderDecades()}
+          {view === 'years' && renderYears()}
+          {view === 'days' && enabledWeekDays.length < 7 && (
+            <p className="dp-footnote">Available on: {enabledWeekDays.slice().sort().map((d) => WEEKDAYS_SHORT[d]).join(', ') || 'no days'}</p>
+          )}
+        </div>
+      )}
     </div>
   );
-};
-
-export default DatePicker;
+}

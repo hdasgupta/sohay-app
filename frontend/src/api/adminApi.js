@@ -1,19 +1,11 @@
-import httpClient, { unwrap, unwrapFull } from './httpClient';
+import client, { unwrap } from './client.js';
 
-export const adminApi = {
-  slotCatalog: async () => unwrap(await httpClient.get('/admin/slot-catalog')),
-  createDoctor: async (payload) => unwrapFull(await httpClient.post('/admin/doctors', payload)),
-  updateDoctor: async (doctorId, payload) => unwrapFull(await httpClient.put(`/admin/doctors/${doctorId}`, payload)),
-  listDoctors: async (search) => unwrap(await httpClient.get('/admin/doctors', { params: { search: search || undefined } })),
-  getDoctor: async (doctorId) => unwrap(await httpClient.get(`/admin/doctors/${doctorId}`)),
-  setDisabled: async (doctorId, disabled) =>
-    unwrapFull(await httpClient.patch(`/admin/doctors/${doctorId}/disabled`, { disabled })),
-  doctorOptions: async () => unwrap(await httpClient.get('/admin/doctors/options')),
-  patientOptions: async () => unwrap(await httpClient.get('/admin/patients/options')),
-  upcomingAppointment: async (params) => unwrapFull(await httpClient.get('/admin/appointments/upcoming', { params })),
-  slotsForReschedule: async (params) => unwrap(await httpClient.get('/admin/appointments/slots', { params })),
-  reschedule: async (appointmentId, payload) =>
-    unwrapFull(await httpClient.patch(`/admin/appointments/${appointmentId}/reschedule`, payload)),
-};
-
-export default adminApi;
+export const listDoctors = async () => unwrap(await client.get('/admin/doctors', { loaderMessage: 'Loading doctors...' }));
+export const getDoctor = async (id) => unwrap(await client.get(`/admin/doctors/${id}`, { loaderMessage: 'Loading doctor...' }));
+export const createDoctor = async (body) => unwrap(await client.post('/admin/doctors', body, { loaderMessage: 'Saving doctor...' }));
+export const updateDoctor = async (id, body) => unwrap(await client.put(`/admin/doctors/${id}`, body, { loaderMessage: 'Updating doctor...' }));
+export const setDoctorDisabled = async (id, disabled) => unwrap(await client.patch(`/admin/doctors/${id}/status`, { disabled }, { loaderMessage: disabled ? 'Disabling doctor...' : 'Enabling doctor...' }));
+export const listPatients = async () => unwrap(await client.get('/admin/patients', { loaderMessage: 'Loading patients...' }));
+export const upcomingAppointments = async (patientId, doctorId) => unwrap(await client.get('/admin/appointments/upcoming', { params: { patientId, doctorId }, loaderMessage: 'Finding upcoming appointments...' }));
+export const rescheduleSlots = async (appointmentId, date) => unwrap(await client.get('/admin/slots', { params: { appointmentId, date }, loaderMessage: 'Loading available slots...' }));
+export const reschedule = async (id, date, startTime) => unwrap(await client.put(`/admin/appointments/${id}/reschedule`, { date, startTime }, { loaderMessage: 'Rescheduling appointment...' }));

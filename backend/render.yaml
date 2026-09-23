@@ -1,0 +1,19 @@
+# Render blueprint - https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: wbfmh-appointment-api
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "24"
+      # All other variables: upload backend/.env.production as a Render "Secret File"
+      # named .env.production (it is read from /etc/secrets/.env.production), or add them
+      # one by one in the dashboard.
