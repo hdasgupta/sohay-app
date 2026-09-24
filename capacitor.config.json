@@ -1,5 +1,5 @@
 {
   "appId": "org.wbfmh.sohay",
   "appName": "Sohay",
-  "webDir": "dist"
+  "webDir": "frontend/dist"
 }
