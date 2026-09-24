@@ -21,15 +21,15 @@ services:
 
       # Frontend & CORS
       - key: FRONTEND_URL
-        value: https://sohay-app.himaghna-dasgupta.workers.dev
+        value: https://sohay-app-three.vercel.app
       - key: CORS_ORIGINS
-        value: http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,https://sohay-app.himaghna-dasgupta.workers.dev
+        value: http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,https://sohay-app-three.vercel.app
       - key: CORS_ALLOW_VERCEL_PREVIEWS
         value: "true"
 
       # Database
       - key: DATABASE_URL
-        value: postgresql://postgres:Executable#1@localhost:5432/postgres
+        value: psql postgresql://neondb_owner:npg_rBtiX57IlGMD@ep-ancient-poetry-a11rokqd-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       - key: DB_SSL
         value: "false"
       - key: DB_POOL_MAX
