@@ -10,6 +10,7 @@ pg.types.setTypeParser(1114, (v) => v); // timestamp   -> string
 pg.types.setTypeParser(20, (v) => parseInt(v, 10)); // bigint/count -> number
 
 function buildConfig() {
+  console.log("DB url: "+env.databaseUrl);
   const url = new URL(env.databaseUrl);
   console.log(url);
   // pg does not understand channel_binding in the URL; it negotiates SCRAM-SHA-256-PLUS itself.
