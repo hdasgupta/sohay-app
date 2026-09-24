@@ -2,5 +2,10 @@
   "scripts": {
     "build": "npm --prefix frontend install && npm --prefix frontend run build",
     "cap:sync": "npm --prefix frontend exec cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
   }
 }
