@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sohay</string>
+    <string name="title_activity_main">Sohay</string>
+    <string name="package_name">org.wbfmh.sohay</string>
+    <string name="custom_url_scheme">org.wbfmh.sohay</string>
+</resources>

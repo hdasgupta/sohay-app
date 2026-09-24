@@ -14,7 +14,7 @@ export default function AuthLayout({ title, subtitle, children }) {
   return (
     <div className="auth-layout">
       <aside className="auth-hero">
-        <Logo size={64} subtitle="Compassionate care, online" />
+        <Logo size={64} subtitle="Sohay online application" />
         <h2 className="auth-hero-title">Your mental health matters.<br /><span>We are here to listen.</span></h2>
         <ul className="auth-points">
           {POINTS.map((p) => (
