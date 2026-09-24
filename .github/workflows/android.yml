@@ -27,8 +27,8 @@ jobs:
       - name: Build Web App
         env:
           VITE_API_BASE_URL: https://sohay-app.onrender.com
-          VITE_ORGANISATION_NAME:West Bengal Forum for Mental Health
-          VITE_APP_TIMEZONE:Asia/Kolkata
+          VITE_ORGANISATION_NAME: West Bengal Forum for Mental Health
+          VITE_APP_TIMEZONE: Asia/Kolkata
         run: npm run build
 
       - name: Set up JDK 21
