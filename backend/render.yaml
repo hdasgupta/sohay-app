@@ -29,9 +29,9 @@ services:
 
       # Database
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_rBtiX57IlGMD@ep-ancient-poetry-a11rokqd-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+        value: "postgresql://neondb_owner:npg_rBtiX57IlGMD@ep-ancient-poetry-a11rokqd-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
       - key: DB_SSL
-        value: "false"
+        value: "true"
       - key: DB_POOL_MAX
         value: "10"
 
