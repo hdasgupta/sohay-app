@@ -16,9 +16,8 @@ export async function downloadPdf(a) {
   try {
     const blob = await downloadPrescription(a.id);
     if (Capacitor.isNativePlatform()) {
-      // 📱 Native Android logic: convert to Base64 and write to filesystem
-      const base64Data = await blobToBase64(responseBlob);
-    
+     
+      const base64Data = blob;
       await Filesystem.writeFile({
         path: `prescription-${a.date}-${a.id}.pdf`,
         data: base64Data,
