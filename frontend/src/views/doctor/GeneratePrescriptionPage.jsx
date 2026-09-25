@@ -10,6 +10,8 @@ import { guessDose, timingSummary } from '../../utils/medicine.js';
 import { formatTime, formatDate, todayIso } from '../../utils/date.js';
 import { saveBlob } from '../../utils/download.js';
 import './GeneratePrescriptionPage.css';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 const svg = (d) => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">{d}</svg>;
 const TIMINGS = [
@@ -118,7 +120,20 @@ export default function GeneratePrescriptionPage() {
   const download = async () => {
     try {
       const blob = await downloadPrescription(generated.appointmentId);
-      saveBlob(blob, `prescription-${todayIso()}-${generated.appointmentId}.pdf`);
+      if (Capacitor.isNativePlatform()) {
+        // 📱 Native Android logic: convert to Base64 and write to filesystem
+        const base64Data = blob;
+    
+        await Filesystem.writeFile({
+          path: `prescription-${todayIso()}-${generated.appointmentId}.pdf`,
+          data: base64Data,
+          directory: Directory.Documents, // 📁 Saves in Documents folder
+        });
+    
+        alert('PDF downloaded to Documents folder! 📄');
+      } else {
+        saveBlob(blob, `prescription-${todayIso()}-${generated.appointmentId}.pdf`);
+      }
     } catch { /* shown */ }
   };
 

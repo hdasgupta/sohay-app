@@ -9,12 +9,27 @@ import { notify } from '../../utils/eventBus.js';
 import { saveBlob } from '../../utils/download.js';
 import { todayIso, formatDate } from '../../utils/date.js';
 import './AppointmentListPage.css';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 export async function downloadPdf(a) {
   try {
     const blob = await downloadPrescription(a.id);
-    saveBlob(blob, `prescription-${a.date}-${a.id}.pdf`);
-    notify.success('Prescription downloaded');
+    if (Capacitor.isNativePlatform()) {
+      // 📱 Native Android logic: convert to Base64 and write to filesystem
+      const base64Data = await blobToBase64(responseBlob);
+    
+      await Filesystem.writeFile({
+        path: `prescription-${a.date}-${a.id}.pdf`,
+        data: base64Data,
+        directory: Directory.Documents, // 📁 Saves in Documents folder
+      });
+    
+      notify.success('Prescription downloaded');
+    } else {
+      saveBlob(blob, `prescription-${a.date}-${a.id}.pdf`);
+      notify.success('Prescription downloaded');
+    }
   } catch { /* shown */ }
 }
 
