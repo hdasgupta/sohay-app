@@ -4,6 +4,7 @@ import ToggleButton from '../../components/ToggleButton/ToggleButton.jsx';
 import SignaturePad from '../../components/SignaturePad/SignaturePad.jsx';
 import { todayAppointments, searchMedicines, profile as fetchProfile, saveSignature, createPrescription } from '../../api/doctorApi.js';
 import { downloadPrescription } from '../../api/commonApi.js';
+import { downloadPrescriptionInAndroid } from '../../api/androidApi.js';
 import { FOOD_TIMINGS } from '../../config/constants.js';
 import { notify } from '../../utils/eventBus.js';
 import { guessDose, timingSummary } from '../../utils/medicine.js';
@@ -119,19 +120,11 @@ export default function GeneratePrescriptionPage() {
 
   const download = async () => {
     try {
-      const blob = await downloadPrescription(generated.appointmentId);
       if (Capacitor.isNativePlatform()) {
-        // 📱 Native Android logic: convert to Base64 and write to filesystem
-        const base64Data = blob;
-    
-        await Filesystem.writeFile({
-          path: `prescription-${todayIso()}-${generated.appointmentId}.pdf`,
-          data: base64Data,
-          directory: Directory.Documents, // 📁 Saves in Documents folder
-        });
-    
-        alert('PDF downloaded to Documents folder! 📄');
+       
+        await downloadPrescriptionInAndroid(generated.appointmentId);
       } else {
+        const blob = await downloadPrescription(generated.appointmentId);
         saveBlob(blob, `prescription-${todayIso()}-${generated.appointmentId}.pdf`);
       }
     } catch { /* shown */ }
