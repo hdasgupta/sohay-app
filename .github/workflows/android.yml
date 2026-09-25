@@ -45,8 +45,14 @@ jobs:
           cd android
           ./gradlew assembleDebug
 
+      - name: Rename APK
+        run: |
+          mv frontend/android/app/build/outputs/apk/debug/app-debug.apk \
+             frontend/android/app/build/outputs/apk/debug/sohay-app.apk
+
+
       - name: Upload APK
         uses: actions/upload-artifact@v5
         with:
-          name: app-debug
-          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          name: sohay-app
+          path: frontend/android/app/build/outputs/apk/debug/sohay-app.apk
