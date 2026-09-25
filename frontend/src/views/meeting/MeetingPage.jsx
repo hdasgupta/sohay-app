@@ -54,7 +54,15 @@ export default function MeetingPage() {
           width: '100%',
           height: '100%',
           userInfo: { displayName: user.name, email: user.email },
-          configOverwrite: { prejoinConfig: { enabled: true }, disableDeepLinking: true, startWithAudioMuted: false, startWithVideoMuted: false },
+          configOverwrite: {
+            prejoinConfig: {
+              enabled: true
+            },
+            disableInitialGUM: true,
+            disableDeepLinking: true,
+            startWithAudioMuted: false,
+            startWithVideoMuted: false
+         },
           interfaceConfigOverwrite: { MOBILE_APP_PROMO: false },
         });
         apiRef.current = api;

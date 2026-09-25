@@ -3,6 +3,12 @@
 .meet-title { font-size: 1.2rem; margin: 0; }
 .meet-bar p { margin: 2px 0 0; }
 .meet-frame { position: relative; height: calc(100vh - 260px); min-height: 460px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); background: #05070f; }
+@media (max-width: 768px) {
+    .meet-frame {
+        height: calc(100dvh - 90px);
+        min-height: 500px;
+    }
+}
 .meet-frame iframe { border: 0; }
 .meet-wait { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: #9fb0d9; }
 .meet-rec { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.8rem; color: var(--danger); background: var(--danger-soft); padding: 4px 10px; border-radius: 999px; }
