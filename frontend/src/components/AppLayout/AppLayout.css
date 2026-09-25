@@ -1,3 +1,0 @@
-.app-layout { min-height: 100vh; display: flex; flex-direction: column; }
-.app-main { flex: 1; width: 100%; padding: clamp(14px, 3vw, 32px); }
-.app-footer { padding: 14px clamp(14px, 3vw, 32px); font-size: 0.78rem; color: var(--text-faint); border-top: 1px solid var(--border); text-align: center; }

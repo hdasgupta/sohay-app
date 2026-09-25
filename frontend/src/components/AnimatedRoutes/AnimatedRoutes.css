@@ -1,6 +1,0 @@
-.route-stage { display: grid; grid-template-areas: 'stage'; min-width: 0; overflow-x: clip; }
-.route-layer { grid-area: stage; min-width: 0; }
-.route-enter { animation: route-slide-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both; z-index: 2; }
-.route-exit { animation: route-slide-out 520ms cubic-bezier(0.4, 0, 0.6, 1) both; pointer-events: none; z-index: 1; }
-@keyframes route-slide-in { from { transform: translateX(-120px); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes route-slide-out { from { transform: none; opacity: 1; } to { transform: translateX(120px); opacity: 0; } }

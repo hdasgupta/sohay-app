@@ -1,7 +1,0 @@
-.dropdown-wrap { position: relative; }
-.dropdown-select { appearance: none; -webkit-appearance: none; padding-right: 40px; cursor: pointer; }
-.dropdown-select option { background: var(--surface); color: var(--text); }
-.dropdown-select option:disabled { color: var(--text-faint); }
-.dropdown-caret { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; display: grid; }
-.dropdown-compact .dropdown-select { padding: 6px 34px 6px 10px; font-size: 0.85rem; }
-.dropdown-compact .dropdown-caret { right: 10px; }

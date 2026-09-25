@@ -1,5 +1,0 @@
-.cd-overlay { position: fixed; inset: 0; z-index: 950; display: grid; place-items: center; padding: 16px; background: rgba(3, 8, 22, 0.6); backdrop-filter: blur(3px); animation: cd-fade 180ms ease-out; }
-.cd-box { width: min(440px, 100%); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-lg); animation: cd-pop 220ms cubic-bezier(0.2, 0.8, 0.2, 1.2); }
-.cd-actions { justify-content: flex-end; margin-top: 16px; }
-@keyframes cd-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes cd-pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
