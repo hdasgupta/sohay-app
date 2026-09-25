@@ -5,6 +5,7 @@ import AppointmentCard from '../../components/AppointmentCard/AppointmentCard.js
 import ConfirmDialog from '../../components/ConfirmDialog/ConfirmDialog.jsx';
 import { listAppointments, cancelAppointment } from '../../api/patientApi.js';
 import { downloadPrescription } from '../../api/commonApi.js';
+import { downloadPrescriptionInAndroid } from '../../api/androidApi.js';
 import { notify } from '../../utils/eventBus.js';
 import { saveBlob } from '../../utils/download.js';
 import { todayIso, formatDate } from '../../utils/date.js';
@@ -14,18 +15,13 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 
 export async function downloadPdf(a) {
   try {
-    const blob = await downloadPrescription(a.id);
     if (Capacitor.isNativePlatform()) {
      
-      const base64Data = blob;
-      await Filesystem.writeFile({
-        path: `prescription-${a.date}-${a.id}.pdf`,
-        data: base64Data,
-        directory: Directory.Documents, // 📁 Saves in Documents folder
-      });
+      await downloadPrescriptionInAndroid(a.id);
     
       notify.success('Prescription downloaded');
     } else {
+      const blob = await downloadPrescription(a.id);
       saveBlob(blob, `prescription-${a.date}-${a.id}.pdf`);
       notify.success('Prescription downloaded');
     }

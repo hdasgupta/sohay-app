@@ -11,12 +11,7 @@ export const resetPassword = async (body) => unwrap(await client.post('/auth/res
 export const meetingToken = async (appointmentId) => unwrap(await client.get(`/meetings/${appointmentId}/token`, { loaderMessage: 'Preparing your consultation room...' }));
 export async function downloadPrescription(appointmentId) {
   const res = await client.get(`/prescriptions/${appointmentId}/download`, { responseType: 'blob', loaderMessage: 'Downloading prescription...' });
-  if (Capacitor.isNativePlatform()) {
-    return blobToBase64(res.data);
-  }
-  else {
-    return res.data;
-  }
+  return res.data;
 }
 const blobToBase64 = (blob) => {
   return new Promise((resolve, reject) => {
