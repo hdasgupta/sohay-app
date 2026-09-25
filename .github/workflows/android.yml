@@ -37,10 +37,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Add Android Platform & Sync
-        run: |
-          npx cap add android
-          npx cap sync android
+      - name: Android Platform Sync
+        run: npx cap sync android
 
       - name: Build Android APK
         run: |
