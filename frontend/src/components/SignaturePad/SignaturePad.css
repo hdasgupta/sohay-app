@@ -1,0 +1,7 @@
+.signature-pad { display: flex; flex-direction: column; gap: 10px; }
+.sp-canvas-wrap { position: relative; border-radius: var(--radius-sm); border: 2px dashed var(--border-strong); background: #fdfdfd; overflow: hidden; }
+.sp-canvas { display: block; width: 100%; touch-action: none; cursor: crosshair; }
+.sp-hint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #9aa6c2; font-style: italic; pointer-events: none; }
+.sp-preview { display: flex; flex-direction: column; gap: 6px; }
+.sp-preview img { max-height: 90px; width: auto; align-self: flex-start; background: #fff; border-radius: 8px; padding: 6px 12px; border: 1px solid var(--border); }
+.sp-upload { cursor: pointer; }

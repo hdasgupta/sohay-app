@@ -1,0 +1,112 @@
+# Render blueprint - https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: wbfmh-appointment-api
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "24"
+      - key: PORT
+        value: "5000"
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata
+
+      # Frontend & CORS
+      - key: FRONTEND_URL
+        value: https://sohay-app-three.vercel.app
+      - key: CORS_ORIGINS
+        value: http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,https://sohay-app-three.vercel.app
+      - key: CORS_ALLOW_VERCEL_PREVIEWS
+        value: "true"
+
+      # Database
+      - key: DATABASE_URL
+        value: "postgresql://neondb_owner:npg_rBtiX57IlGMD@ep-ancient-poetry-a11rokqd-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+      - key: DB_SSL
+        value: "true"
+      - key: DB_POOL_MAX
+        value: "10"
+
+      # Auth & Security
+      - key: JWT_SECRET
+        value: dev_3f9c1b7e2a8d4c6f9e0b1a2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f6
+      - key: JWT_EXPIRES_IN
+        value: 30d
+      - key: BCRYPT_SALT_ROUNDS
+        value: "10"
+      - key: OTP_SECRET
+        value: dev_otp_8e7d6c5b4a39281706f5e4d3c2b1a0f9
+      - key: CAPTCHA_SECRET
+        value: dev_captcha_1a2b3c4d5e6f708192a3b4c5d6e7f809
+      - key: OTP_VALIDITY_MINUTES
+        value: "10"
+      - key: CAPTCHA_VALIDITY_MINUTES
+        value: "5"
+
+      # Seed Admin
+      - key: ADMIN_NAME
+        value: Administrator
+      - key: ADMIN_EMAIL
+        value: wbffmh@gmail.com
+      - key: ADMIN_PASSWORD
+        value: Admin@12345
+
+      # Email Service (Resend)
+      - key: EMAIL_FROM
+        value: West Bengal Forum for Mental Health <onboarding@resend.dev>
+      - key: EMAIL_PROVIDER
+        value: resend
+
+      # Neon S3 Storage
+      - key: STORAGE_PROVIDER
+        value: s3
+      - key: AWS_ENDPOINT_URL_S3
+        value: https://br-sparkling-sound-a158ghix.storage.c-1.ap-southeast-1.aws.neon.tech
+      - key: AWS_ACCESS_KEY_ID
+        value: nak_live_20f7edef43be4400ad6b017f0c5e805c
+      - key: AWS_SECRET_ACCESS_KEY
+        value: nsk_live_3119428a098d0626760b5a6ae806d981eaf97f5e8981bed19355961eba3642d5
+      - key: AWS_REGION
+        value: ap-southeast-1
+      - key: PRESCRIPTION_BUCKET
+        value: prescriptions
+
+      # Cloudflare R2
+      - key: R2_ACCOUNT_ID
+        value: ""
+      - key: R2_ACCESS_KEY_ID
+        value: ""
+      - key: R2_SECRET_ACCESS_KEY
+        value: ""
+      - key: R2_BUCKET
+        value: wbfmh-recordings
+      - key: R2_PUBLIC_BASE_URL
+        value: ""
+
+      # 8x8 JaaS
+      - key: JAAS_APP_ID
+        value: vpaas-magic-cookie-f05a06c6b6a4427a8427ac58fdafb9bd
+      - key: JAAS_API_KEY_ID
+        value: vpaas-magic-cookie-f05a06c6b6a4427a8427ac58fdafb9bd/d541c4
+      - key: JAAS_DOMAIN
+        value: 8x8.vc
+      - key: JAAS_WEBHOOK_SECRET
+        value: ""
+      - key: JAAS_PRIVATE_KEY
+        value: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC/y0JXiiTwz6Q+\nkd5c+1rziK4YpCjBzjH4eKKITNpbWR9uMpj6XljqkaoOejwxjje5Z5okC8fs0X//\nGSMp1O/btXOiLihzYF5hswxxiOKRrgBiNWxflykcALBgXNVgHInnF8CLn8B7En8h\njZQ3RJrAVjjRii8DC6hy83qOb89ohUItygezvbwjsUexPJp/rjCARGAnJWfduEuD\nL2R6Ryax8wS8RKe+VIQiWet8Se5KWW3t7u4Jxe9xAg4o8a3oITg7Wlu5/7NAjQe6\nrr/ADXbiPy4WZ4S/CHj1dJlI3xTlsJmQAYNT9VkQfumm5JYlWvjV9qcjDw1ESNh3\nrGRD6V+bAgMBAAECggEAF7vhc8/Gjn5DhvKqH7uDH8v0L1xxJrqLeIIFKvTHuLIo\nr4xXXfQ68Jwh/TSnKkK9JpZpfrhufyHVww2rSkvterTToGgx3UU5qMFtcsdLsldj\+MM/q/yau7piGSqjxQcDEbPgweZ8/T3muZI5mzVEKTUCRvvgoXHZ4I+8xM+VTQup\nZPvTKK5/ATzJFs24uuQ+EhaRHOJ5Z/6p3y5IrAVEx7RojDfQ73uajuhh4i4ueyT2\nGS3LVsdNfghTZOqz3nO7W15AOfcMLAIcLt27zDs/3Wkk+dgMEHeUn8renO3ZXIdB\nWSmGhhPunfp1eFyR3+pKRtNkE/i1OO2/C2zvSKpJsQKBgQD2SQNAyCC09ZjMjiBc\nuuvYh/YD3b/pXsIAkKYO1n9oipyw6tTH/SftfUsSzIByfKGytjNhwJ57Rt6hE0zu\nYDtzP0Q3Vz9qi7geWTUhlJHzB02GfYnt8ePg3m82ShTIT8X71ULrF1rUVGlZ6Sot\nymXJSkB8JQBNghVOHjIs+nzEVwKBgQDHW/6EnagF3Nn4VztRIXgiG6PNoDdFubxX\ng/zOt5sFJXgIKpFcVgWyqMDKVoQ0/acGd2+lpY8bnIoImjexy3YYWOcfI5Q2rjGl\ne61tn1wSgzjKyyZBvxNjRK5w9CtjDHVyeI3+NROVZ4Q/ykpHIfHFQm0IWmUTa32Y\nU+wljzLUXQKBgHc/Wufe/pcf42AH4PuFNfSdwCyXDfj8/Ioxf3XnvcDsfHnc+jHr\nDY4cAGGVywuj9NcHCVHnZdTit6DeK32v8pkWpPz2ran1BK0NHICp4xD9FDhuSH6B\nhIi4qrhqni1vErmgxMn3gO8V//ycvON3AFm6LgbuE3tz5MTyMfE9R3P5AoGBAI5z\naKmAMeiGh+XRBxyQytOsZl5u5i/XaQIr2MApKAcEYAGN0TJmcUnZFXE/YtaujOOt\nAkUdyOVU9Ljy4WsU1DzPgc6ZULXFwMnbVvAm19aOl00o3hxKmWLsV610e3AaHe3+\nwI9tg6HVRwWB2ZN8aNKoBVrbpK+8thDbnriz2wEtAoGAagzZYPB4q6V27gyEYvYB\nKm89uH+lctU8nUk7XHV8OTGakrORn7g20uuQRtPOHpv3XFTJ3nPzNVFM5FKaAL4W\nAzzFNesdAJUtBvSmx+bV4j7vt12OeIOdcYssrUQVnIT/AvIDctghljYOx3uvrvE9\nj7DWE/XmBV4udY1Ql2XqAnk=\n-----END PRIVATE KEY-----"
+
+      # Dataset & Background Jobs
+      - key: MEDICINE_CSV_URL
+        value: https://raw.githubusercontent.com/junioralive/Indian-Medicine-Dataset/refs/heads/main/DATA/indian_medicine_data.csv
+      - key: MEDICINE_IMPORT_ON_START
+        value: "true"
+      - key: ENABLE_CRON
+        value: "true"

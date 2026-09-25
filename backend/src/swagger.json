@@ -1,0 +1,9 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Express Backend API",
+    "version": "1.0.0",
+    "description": "Auto-generated OpenAPI spec created via static code inspection."
+  },
+  "paths": {}
+}

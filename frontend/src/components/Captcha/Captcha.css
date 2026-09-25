@@ -1,0 +1,7 @@
+.cap-row { display: flex; align-items: center; gap: 10px; }
+.cap-image { position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: #fff; line-height: 0; width: 220px; max-width: 100%; }
+.cap-image canvas { width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+.cap-failed { position: absolute; inset: 0; display: grid; place-items: center; color: #b91c1c; font-size: 0.85rem; line-height: 1.2; }
+.cap-refresh:hover svg { transform: rotate(180deg); }
+.cap-refresh svg { transition: transform 400ms ease; }
+.cap-input { letter-spacing: 0.25em; text-transform: uppercase; font-weight: 700; }

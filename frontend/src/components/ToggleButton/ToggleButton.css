@@ -1,0 +1,6 @@
+.toggle-btn { --tone: var(--primary); --tone-soft: var(--primary-soft); display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted); font: inherit; font-weight: 600; cursor: pointer; transition: all var(--transition); }
+.toggle-btn.tone-warning { --tone: var(--warning); --tone-soft: var(--warning-soft); }
+.toggle-btn:hover { border-color: var(--tone); }
+.tb-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--text-faint); transition: all var(--transition); }
+.tb-on { background: var(--tone-soft); color: var(--tone); border-color: var(--tone); }
+.tb-on .tb-dot { background: var(--tone); border-color: var(--tone); box-shadow: 0 0 0 3px var(--tone-soft); }

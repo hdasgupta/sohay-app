@@ -1,0 +1,50 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+.vercel
+.env*
+
+# Gradle
+**/.gradle/
+**/build/
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Build outputs
+*/build/
+**/build/
+
+# Generated files
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Native build
+.externalNativeBuild/
+.cxx/
+
+# Keystore / signing files
+*.jks
+*.keystore
+*.p12
+
+# Firebase / Google service credentials
+google-services.json
+
+# ProGuard / R8
+mapping.txt
+
+# OS files
+.DS_Store
+Thumbs.db

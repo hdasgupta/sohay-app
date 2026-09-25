@@ -1,0 +1,8 @@
+.book-grid { display: grid; gap: 18px; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+.book-form { display: flex; flex-direction: column; gap: 16px; }
+.book-doc-days { display: flex; gap: 6px; flex-wrap: wrap; margin-top: -6px; }
+.book-day { padding: 3px 9px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: var(--surface-3); color: var(--text-faint); text-decoration: line-through; }
+.book-day-on { background: var(--accent-soft); color: var(--accent); text-decoration: none; }
+.book-tips ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--text-muted); }
+.book-success { display: flex; flex-direction: column; gap: 12px; animation: pg-in 360ms ease-out; }
+@media (max-width: 900px) { .book-grid { grid-template-columns: 1fr; } }

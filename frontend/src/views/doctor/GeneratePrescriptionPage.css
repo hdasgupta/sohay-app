@@ -1,0 +1,29 @@
+.rx { display: flex; flex-direction: column; gap: 18px; }
+.rx .page-title { margin-bottom: 0; }
+.rx-grid { display: grid; gap: 18px; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
+.rx-step { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 1.02rem; }
+.rx-step > span { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 0.8rem; color: #fff; background: linear-gradient(135deg, var(--accent), var(--primary)); }
+.rx-patient { display: grid; gap: 12px; grid-template-columns: minmax(140px, 200px) 1fr; align-items: start; padding: 12px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--border); }
+.rx-pinfo { display: grid; gap: 4px; font-size: 0.86rem; word-break: break-all; padding-top: 22px; }
+.rx-pinfo .faint { display: inline-block; min-width: 50px; font-size: 0.72rem; text-transform: uppercase; }
+.rx-medicine { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.rx-medicine:disabled { opacity: 0.55; }
+.rx-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.rx-preview { position: sticky; top: calc(var(--header-h) + 12px); }
+.rx-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: rx; }
+.rx-item { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--border); animation: pg-in 260ms ease-out; }
+.rx-num { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-weight: 800; background: var(--primary-soft); color: var(--primary); }
+.rx-item-body { display: flex; flex-direction: column; min-width: 0; word-break: break-word; }
+.rx-remove { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--danger); font-size: 1.2rem; cursor: pointer; }
+.rx-remove:hover { background: var(--danger-soft); }
+.rx-signature { display: flex; flex-direction: column; gap: 8px; }
+.rx-sig-img { max-height: 80px; width: auto; align-self: flex-start; background: #fff; border-radius: 8px; padding: 6px 12px; border: 1px solid var(--border); }
+.rx-sig-warn { color: var(--warning); margin: 0; }
+.rx-done { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-color: color-mix(in srgb, var(--success) 50%, var(--border)); box-shadow: inset 0 3px 0 var(--success), var(--shadow); animation: pg-in 300ms ease-out; }
+.rx-done h2 { color: var(--success); margin: 0; }
+@media (max-width: 1000px) {
+  .rx-grid { grid-template-columns: 1fr; }
+  .rx-preview { position: static; }
+  .rx-patient { grid-template-columns: 1fr; }
+  .rx-pinfo { padding-top: 0; }
+}
