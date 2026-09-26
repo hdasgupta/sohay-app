@@ -54,6 +54,12 @@ export default function MeetingPage() {
           width: '100%',
           height: '100%',
           userInfo: { displayName: user.name, email: user.email },
+          onload: () => {
+            if (!disposed) {
+              setStatus('ready');
+            }
+          },
+
           configOverwrite: {
             prejoinConfig: {
               enabled: true
@@ -110,9 +116,8 @@ export default function MeetingPage() {
       {status === 'error' ? (
         <div className="empty-state meet-error"><strong>Unable to open the consultation room</strong>{errorText}</div>
       ) : (
-        <div className="meet-frame" ref={containerRef} data-testid="jitsi-container">
-          {status === 'loading' && <p className="meet-wait">Connecting to the secure video room...</p>}
-        </div>
+        <div className="meet-frame" ref={containerRef} data-testid="jitsi-container" />
+       
       )}
     </div>
   );

@@ -10,7 +10,7 @@
     }
 }
 .meet-frame iframe { border: 0; }
-.meet-wait { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: #9fb0d9; }
+.meet-wait { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: #9fb0d9;pointer-events: none; z-index: 0; }
 .meet-rec { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.8rem; color: var(--danger); background: var(--danger-soft); padding: 4px 10px; border-radius: 999px; }
 .meet-rec-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); animation: rec 1s ease-in-out infinite alternate; }
 @keyframes rec { to { opacity: 0.25; } }
