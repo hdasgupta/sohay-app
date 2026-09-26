@@ -117,7 +117,6 @@ export default function MeetingPage() {
         <div className="empty-state meet-error"><strong>Unable to open the consultation room</strong>{errorText}</div>
       ) : (
         <div className="meet-frame" ref={containerRef} data-testid="jitsi-container" />
-       
       )}
     </div>
   );
