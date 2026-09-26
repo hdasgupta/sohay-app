@@ -58,7 +58,7 @@ export default function MeetingPage() {
             prejoinConfig: {
               enabled: true
             },
-            disableInitialGUM: true,
+            //disableInitialGUM: true,
             disableDeepLinking: true,
             startWithAudioMuted: false,
             startWithVideoMuted: false
