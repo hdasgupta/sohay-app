@@ -1,14 +1,91 @@
-.loader-overlay { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: rgba(4, 9, 24, 0.55); backdrop-filter: blur(3px); animation: ld-fade 200ms ease-out; }
-@keyframes ld-fade { from { opacity: 0; } to { opacity: 1; } }
-.loader-box { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 26px 34px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--border-strong); box-shadow: var(--shadow-lg); max-width: min(90vw, 360px); text-align: center; }
-.loader-message { margin: 0; font-weight: 600; color: var(--text); }
-.hourglass .hg-body { transform-origin: 32px 32px; animation: hg-flip 2.4s ease-in-out infinite; }
-.hg-frame { fill: var(--primary); }
-.hg-glass { fill: var(--primary-soft); stroke: var(--text-muted); stroke-width: 1.5; }
-.hg-top { transform-origin: 32px 29px; animation: hg-drain 2.4s linear infinite; }
-.hg-bottom { transform-origin: 32px 53px; animation: hg-fill 2.4s linear infinite; }
-.hg-stream { animation: hg-stream 0.4s linear infinite; }
-@keyframes hg-flip { 0%, 80% { transform: rotate(0); } 100% { transform: rotate(180deg); } }
-@keyframes hg-drain { 0% { transform: scaleY(1); } 80%, 100% { transform: scaleY(0); } }
-@keyframes hg-fill { 0% { transform: scaleY(0); } 80%, 100% { transform: scaleY(1); } }
-@keyframes hg-stream { to { stroke-dashoffset: -5; } }
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 9, 24, 0.55);
+  backdrop-filter: blur(3px);
+  animation: ld-fade 200ms ease-out;
+}
+@keyframes ld-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.loader-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 26px 34px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lg);
+  max-width: min(90vw, 360px);
+  text-align: center;
+}
+.loader-message {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+.hourglass .hg-body {
+  transform-origin: 32px 32px;
+  animation: hg-flip 2.4s ease-in-out infinite;
+}
+.hg-frame {
+  fill: var(--primary);
+}
+.hg-glass {
+  fill: var(--primary-soft);
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+}
+.hg-top {
+  transform-origin: 32px 29px;
+  animation: hg-drain 2.4s linear infinite;
+}
+.hg-bottom {
+  transform-origin: 32px 53px;
+  animation: hg-fill 2.4s linear infinite;
+}
+.hg-stream {
+  animation: hg-stream 0.4s linear infinite;
+}
+@keyframes hg-flip {
+  0%,
+  80% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(180deg);
+  }
+}
+@keyframes hg-drain {
+  0% {
+    transform: scaleY(1);
+  }
+  80%,
+  100% {
+    transform: scaleY(0);
+  }
+}
+@keyframes hg-fill {
+  0% {
+    transform: scaleY(0);
+  }
+  80%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+@keyframes hg-stream {
+  to {
+    stroke-dashoffset: -5;
+  }
+}

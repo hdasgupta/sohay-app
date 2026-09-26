@@ -1,6 +1,6 @@
-import logo from '../../assets/logo.png';
-import env from '../../config/env.js';
-import './Logo.css';
+import logo from "../../assets/logo.png";
+import env from "../../config/env.js";
+import "./Logo.css";
 
 export default function Logo({ size = 44, showName = true, subtitle }) {
   return (

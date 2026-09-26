@@ -1,10 +1,12 @@
-import { ACTIVE_APPOINTMENT_STATUSES } from '../config/constants.js';
-import { isFutureSlot, normaliseTime, ageOn } from './date.js';
+import { ACTIVE_APPOINTMENT_STATUSES } from "../config/constants.js";
+import { isFutureSlot, normaliseTime, ageOn } from "./date.js";
 
 export function appointmentDto(r) {
   if (!r) return null;
   const startTime = normaliseTime(r.start_time);
-  const upcoming = ACTIVE_APPOINTMENT_STATUSES.includes(r.status) && isFutureSlot(r.appointment_date, startTime);
+  const upcoming =
+    ACTIVE_APPOINTMENT_STATUSES.includes(r.status) &&
+    isFutureSlot(r.appointment_date, startTime);
   return {
     id: Number(r.id),
     patientId: Number(r.patient_id),
@@ -53,6 +55,7 @@ export function patientDto(r) {
     dateOfBirth: r.date_of_birth,
     age: r.date_of_birth ? ageOn(r.date_of_birth) : null,
     contactNumber: r.contact_number,
-    isDisabled: r.is_disabled === undefined ? undefined : Boolean(r.is_disabled),
+    isDisabled:
+      r.is_disabled === undefined ? undefined : Boolean(r.is_disabled),
   };
 }

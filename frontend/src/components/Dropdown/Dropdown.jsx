@@ -1,5 +1,5 @@
-import { useId } from 'react';
-import './Dropdown.css';
+import { useId } from "react";
+import "./Dropdown.css";
 
 /**
  * Generic dropdown built on select/option.
@@ -10,7 +10,10 @@ import './Dropdown.css';
  * @param selected         currently selected option object (controlled) or null
  * @param placeholder      disabled first option text
  */
-const defaultKey = (o) => (o && typeof o === 'object' ? (o.id ?? o.code ?? o.value ?? JSON.stringify(o)) : o);
+const defaultKey = (o) =>
+  o && typeof o === "object"
+    ? (o.id ?? o.code ?? o.value ?? JSON.stringify(o))
+    : o;
 
 export default function Dropdown({
   options = [],
@@ -18,21 +21,24 @@ export default function Dropdown({
   keyProcessor = defaultKey,
   onOptionSelected,
   selected = null,
-  placeholder = 'Select an option',
+  placeholder = "Select an option",
   label,
   required = false,
   disabled = false,
   id,
   name,
   hint,
-  className = '',
+  className = "",
   compact = false,
 }) {
   const autoId = useId();
   const selectId = id || `dd-${autoId}`;
   const keys = options.map((o) => String(keyProcessor(o)));
-  const value = selected === null || selected === undefined ? '' : String(keyProcessor(selected));
-  const safeValue = keys.includes(value) ? value : '';
+  const value =
+    selected === null || selected === undefined
+      ? ""
+      : String(keyProcessor(selected));
+  const safeValue = keys.includes(value) ? value : "";
 
   const handleChange = (e) => {
     const idx = keys.indexOf(e.target.value);
@@ -40,8 +46,14 @@ export default function Dropdown({
   };
 
   return (
-    <div className={`field dropdown ${compact ? 'dropdown-compact' : ''} ${className}`}>
-      {label && <label htmlFor={selectId} className={required ? 'required' : ''}>{label}</label>}
+    <div
+      className={`field dropdown ${compact ? "dropdown-compact" : ""} ${className}`}
+    >
+      {label && (
+        <label htmlFor={selectId} className={required ? "required" : ""}>
+          {label}
+        </label>
+      )}
       <div className="dropdown-wrap">
         <select
           id={selectId}
@@ -53,13 +65,26 @@ export default function Dropdown({
           required={required}
           aria-label={label || placeholder}
         >
-          <option value="" disabled>{placeholder}</option>
+          <option value="" disabled>
+            {placeholder}
+          </option>
           {options.map((o, i) => (
-            <option key={keys[i]} value={keys[i]}>{labelProcessor(o)}</option>
+            <option key={keys[i]} value={keys[i]}>
+              {labelProcessor(o)}
+            </option>
           ))}
         </select>
         <span className="dropdown-caret" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" /></svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
         </span>
       </div>
       {hint && <span className="hint">{hint}</span>}

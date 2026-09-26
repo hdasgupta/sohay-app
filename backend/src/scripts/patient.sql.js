@@ -1,5 +1,5 @@
 /** SQL used by patient controllers. */
-import { APPOINTMENT_SELECT_BASE } from './common.sql.js';
+import { APPOINTMENT_SELECT_BASE } from "./common.sql.js";
 
 export const PATIENT_SQL = Object.freeze({
   PATIENT_INSERT: `

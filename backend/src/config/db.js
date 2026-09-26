@@ -1,7 +1,7 @@
-import pg from 'pg';
-import env from './env.js';
-import logger from '../utils/logger.js';
-import { TRANSACTION_SQL } from '../scripts/transaction.sql.js';
+import pg from "pg";
+import env from "./env.js";
+import logger from "../utils/logger.js";
+import { TRANSACTION_SQL } from "../scripts/transaction.sql.js";
 
 // Keep DATE / TIME / TIMESTAMP (without tz) as plain strings - no implicit timezone shifting.
 pg.types.setTypeParser(1082, (v) => v); // date        -> 'YYYY-MM-DD'
@@ -10,15 +10,15 @@ pg.types.setTypeParser(1114, (v) => v); // timestamp   -> string
 pg.types.setTypeParser(20, (v) => parseInt(v, 10)); // bigint/count -> number
 
 function buildConfig() {
-  console.log("DB url: "+env.databaseUrl);
+  console.log("DB url: " + env.databaseUrl);
   const url = new URL(env.databaseUrl);
   console.log(url);
   // pg does not understand channel_binding in the URL; it negotiates SCRAM-SHA-256-PLUS itself.
-  const channelBinding = url.searchParams.get('channel_binding');
-  url.searchParams.delete('channel_binding');
-  const sslmode = url.searchParams.get('sslmode');
-  url.searchParams.delete('sslmode');
-  const useSsl = env.dbSsl || sslmode === 'require';
+  const channelBinding = url.searchParams.get("channel_binding");
+  url.searchParams.delete("channel_binding");
+  const sslmode = url.searchParams.get("sslmode");
+  url.searchParams.delete("sslmode");
+  const useSsl = env.dbSsl || sslmode === "require";
   return {
     connectionString: url.toString(),
     ssl: useSsl ? { rejectUnauthorized: true } : false,
@@ -26,12 +26,14 @@ function buildConfig() {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 20000,
     keepAlive: true,
-    enableChannelBinding: channelBinding === 'require',
+    enableChannelBinding: channelBinding === "require",
   };
 }
 
 export const pool = new pg.Pool(buildConfig());
-pool.on('error', (err) => logger.error('Unexpected PostgreSQL pool error', err.message));
+pool.on("error", (err) =>
+  logger.error("Unexpected PostgreSQL pool error", err.message),
+);
 
 /** Run a parameterised query. */
 export async function query(text, params = []) {
@@ -39,10 +41,18 @@ export async function query(text, params = []) {
   try {
     const result = await pool.query(text, params);
     const ms = Date.now() - started;
-    if (ms > 1500) logger.warn(`Slow query (${ms} ms): ${text.split('\n')[0].slice(0, 120)}`);
+    if (ms > 1500)
+      logger.warn(
+        `Slow query (${ms} ms): ${text.split("\n")[0].slice(0, 120)}`,
+      );
     return result;
   } catch (err) {
-    logger.error('Query failed:', err.message, '|', text.replace(/\s+/g, ' ').slice(0, 160));
+    logger.error(
+      "Query failed:",
+      err.message,
+      "|",
+      text.replace(/\s+/g, " ").slice(0, 160),
+    );
     throw err;
   }
 }

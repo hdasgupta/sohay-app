@@ -9,8 +9,14 @@
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(self \"https://8x8.vc\"), microphone=(self \"https://8x8.vc\"), display-capture=(self \"https://8x8.vc\")" }
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self \"https://8x8.vc\"), microphone=(self \"https://8x8.vc\"), display-capture=(self \"https://8x8.vc\")"
+        }
       ]
     }
   ]

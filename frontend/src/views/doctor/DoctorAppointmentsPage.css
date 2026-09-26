@@ -1,3 +1,9 @@
-.doc-appt-stats { gap: 6px; }
-.doc-appts .pg-item { display: flex; }
-.doc-appts .pg-item > * { flex: 1; }
+.doc-appt-stats {
+  gap: 6px;
+}
+.doc-appts .pg-item {
+  display: flex;
+}
+.doc-appts .pg-item > * {
+  flex: 1;
+}

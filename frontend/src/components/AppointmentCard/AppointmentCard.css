@@ -1,25 +1,141 @@
-.appt-card { --tone: var(--info); display: grid; grid-template-columns: 64px 1fr; gap: 14px; height: 100%; padding: 16px; border-radius: var(--radius-lg); background: linear-gradient(160deg, var(--surface-2), var(--surface)); border: 1px solid var(--border); box-shadow: var(--shadow); position: relative; overflow: hidden; transition: transform var(--transition), box-shadow var(--transition); }
-.appt-card::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--tone); }
-.appt-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-.appt-rescheduled { --tone: var(--warning); }
-.appt-cancelled { --tone: var(--danger); }
-.appt-completed { --tone: var(--success); }
-.appt-date { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: var(--radius); background: color-mix(in srgb, var(--tone) 16%, transparent); color: var(--tone); height: 64px; }
-.appt-day { font-size: 1.5rem; font-weight: 800; line-height: 1; }
-.appt-mon { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-.appt-main { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-.appt-top { display: flex; align-items: center; gap: 10px; }
-.appt-avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; background: var(--primary-soft); color: var(--primary); flex-shrink: 0; }
-.appt-who { flex: 1; min-width: 0; }
-.appt-who h3 { margin: 0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.appt-meta { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.86rem; }
-.appt-meta .faint { display: inline-block; min-width: 86px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
-.appt-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
-.appt-who p, .appt-who .muted, .appt-who small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.appt-card {
+  --tone: var(--info);
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  height: 100%;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition);
+}
+.appt-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--tone);
+}
+.appt-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.appt-rescheduled {
+  --tone: var(--warning);
+}
+.appt-cancelled {
+  --tone: var(--danger);
+}
+.appt-completed {
+  --tone: var(--success);
+}
+.appt-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+  color: var(--tone);
+  height: 64px;
+}
+.appt-day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.appt-mon {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.appt-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.appt-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.appt-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: var(--primary-soft);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.appt-who {
+  flex: 1;
+  min-width: 0;
+}
+.appt-who h3 {
+  margin: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.appt-meta {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 0.86rem;
+}
+.appt-meta .faint {
+  display: inline-block;
+  min-width: 86px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.appt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+.appt-who p,
+.appt-who .muted,
+.appt-who small {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 @media (max-width: 520px) {
-  .appt-card { grid-template-columns: 1fr; }
-  .appt-date { flex-direction: row; gap: 8px; height: 40px; width: max-content; padding: 0 14px; }
-  .appt-day { font-size: 1.2rem; }
-  .appt-top { flex-wrap: wrap; }
-  .appt-top > :last-child { margin-left: auto; }
+  .appt-card {
+    grid-template-columns: 1fr;
+  }
+  .appt-date {
+    flex-direction: row;
+    gap: 8px;
+    height: 40px;
+    width: max-content;
+    padding: 0 14px;
+  }
+  .appt-day {
+    font-size: 1.2rem;
+  }
+  .appt-top {
+    flex-wrap: wrap;
+  }
+  .appt-top > :last-child {
+    margin-left: auto;
+  }
 }

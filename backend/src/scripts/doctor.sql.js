@@ -1,5 +1,5 @@
 /** SQL used by doctor controllers. */
-import { APPOINTMENT_SELECT_BASE } from './common.sql.js';
+import { APPOINTMENT_SELECT_BASE } from "./common.sql.js";
 
 export const DOCTOR_SQL = Object.freeze({
   APPOINTMENTS_FOR_DOCTOR: `${APPOINTMENT_SELECT_BASE}

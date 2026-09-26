@@ -1,9 +1,11 @@
 /* Design tokens. Dark bluish theme is the default; light theme via [data-theme='light'] */
 :root,
-[data-theme='dark'] {
+[data-theme="dark"] {
   --bg: #070f24;
-  --bg-gradient: radial-gradient(1200px 600px at 10% -10%, #1b3a7a55, transparent 60%),
-                 radial-gradient(900px 500px at 110% 10%, #0e7c8640, transparent 60%), #070f24;
+  --bg-gradient:
+    radial-gradient(1200px 600px at 10% -10%, #1b3a7a55, transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, #0e7c8640, transparent 60%),
+    #070f24;
   --surface: #0f1b3d;
   --surface-2: #142452;
   --surface-3: #1b2f66;
@@ -33,10 +35,12 @@
   color-scheme: dark;
 }
 
-[data-theme='light'] {
+[data-theme="light"] {
   --bg: #f3f6fd;
-  --bg-gradient: radial-gradient(1200px 600px at 10% -10%, #c7d8ff88, transparent 60%),
-                 radial-gradient(900px 500px at 110% 10%, #b8f1ea77, transparent 60%), #f3f6fd;
+  --bg-gradient:
+    radial-gradient(1200px 600px at 10% -10%, #c7d8ff88, transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, #b8f1ea77, transparent 60%),
+    #f3f6fd;
   --surface: #ffffff;
   --surface-2: #f0f4fd;
   --surface-3: #e3eafb;
@@ -70,8 +74,10 @@
   --radius-sm: 8px;
   --radius: 12px;
   --radius-lg: 18px;
-  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-display: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+  --font:
+    "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --font-display: "Poppins", "Segoe UI", system-ui, sans-serif;
   --transition: 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
   --header-h: 116px;
 }

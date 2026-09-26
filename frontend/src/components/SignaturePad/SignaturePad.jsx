@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { notify } from '../../utils/eventBus.js';
-import './SignaturePad.css';
+import { useEffect, useRef, useState } from "react";
+import { notify } from "../../utils/eventBus.js";
+import "./SignaturePad.css";
 
 const MAX_BYTES = 450 * 1024;
 
@@ -14,7 +14,7 @@ export default function SignaturePad({ value = null, onChange, height = 160 }) {
   const last = useRef(null);
   const [dirty, setDirty] = useState(false);
 
-  const ctx = () => canvasRef.current?.getContext('2d');
+  const ctx = () => canvasRef.current?.getContext("2d");
 
   useEffect(() => {
     const c = canvasRef.current;
@@ -25,10 +25,10 @@ export default function SignaturePad({ value = null, onChange, height = 160 }) {
     const g = ctx();
     if (!g) return;
     g.scale(ratio, ratio);
-    g.lineCap = 'round';
-    g.lineJoin = 'round';
+    g.lineCap = "round";
+    g.lineJoin = "round";
     g.lineWidth = 2.4;
-    g.strokeStyle = '#0b2a6b';
+    g.strokeStyle = "#0b2a6b";
   }, [height]);
 
   const pos = (e) => {
@@ -53,7 +53,9 @@ export default function SignaturePad({ value = null, onChange, height = 160 }) {
     last.current = p;
     setDirty(true);
   };
-  const up = () => { drawing.current = false; };
+  const up = () => {
+    drawing.current = false;
+  };
 
   const clear = () => {
     const c = canvasRef.current;
@@ -63,18 +65,27 @@ export default function SignaturePad({ value = null, onChange, height = 160 }) {
   };
 
   const applyDrawing = () => {
-    const data = canvasRef.current.toDataURL('image/png');
-    if (data.length > MAX_BYTES * 1.37) { notify.warning('Signature is too large, please clear and draw again'); return; }
+    const data = canvasRef.current.toDataURL("image/png");
+    if (data.length > MAX_BYTES * 1.37) {
+      notify.warning("Signature is too large, please clear and draw again");
+      return;
+    }
     onChange?.(data);
-    notify.info('Signature captured');
+    notify.info("Signature captured");
   };
 
   const upload = (e) => {
     const file = e.target.files?.[0];
-    e.target.value = '';
+    e.target.value = "";
     if (!file) return;
-    if (!/^image\/(png|jpeg)$/.test(file.type)) { notify.warning('Please choose a PNG or JPEG image'); return; }
-    if (file.size > MAX_BYTES) { notify.warning('Signature image must be smaller than 450 KB'); return; }
+    if (!/^image\/(png|jpeg)$/.test(file.type)) {
+      notify.warning("Please choose a PNG or JPEG image");
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      notify.warning("Signature image must be smaller than 450 KB");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => onChange?.(String(reader.result));
     reader.readAsDataURL(file);
@@ -102,11 +113,25 @@ export default function SignaturePad({ value = null, onChange, height = 160 }) {
         {!dirty && <span className="sp-hint">Sign here</span>}
       </div>
       <div className="row">
-        <button type="button" className="btn btn-primary btn-sm" onClick={applyDrawing} disabled={!dirty}>Use drawn signature</button>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={clear}>Clear</button>
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+          onClick={applyDrawing}
+          disabled={!dirty}
+        >
+          Use drawn signature
+        </button>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={clear}>
+          Clear
+        </button>
         <label className="btn btn-ghost btn-sm sp-upload">
           Upload image
-          <input type="file" accept="image/png,image/jpeg" onChange={upload} hidden />
+          <input
+            type="file"
+            accept="image/png,image/jpeg"
+            onChange={upload}
+            hidden
+          />
         </label>
       </div>
     </div>

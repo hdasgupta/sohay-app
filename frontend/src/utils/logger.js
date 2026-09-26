@@ -1,5 +1,5 @@
 /** Console logger used across the app for critical states */
-const PREFIX = '[WBFMH]';
+const PREFIX = "[WBFMH]";
 const logger = {
   info: (...a) => console.log(PREFIX, ...a),
   warn: (...a) => console.warn(PREFIX, ...a),

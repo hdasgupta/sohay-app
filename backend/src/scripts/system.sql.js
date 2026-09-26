@@ -10,8 +10,10 @@ export const SYSTEM_SQL = Object.freeze({
   LIST_SCHEMA_TABLES: `
     SELECT tablename FROM pg_tables WHERE schemaname = $1`,
   /** identifier must already be escaped with pg.escapeIdentifier */
-  DROP_TABLE_CASCADE: (escapedIdentifier) => `DROP TABLE IF EXISTS ${escapedIdentifier} CASCADE`,
-  DROP_TYPE_CASCADE: (escapedIdentifier) => `DROP TYPE IF EXISTS ${escapedIdentifier} CASCADE`,
+  DROP_TABLE_CASCADE: (escapedIdentifier) =>
+    `DROP TABLE IF EXISTS ${escapedIdentifier} CASCADE`,
+  DROP_TYPE_CASCADE: (escapedIdentifier) =>
+    `DROP TYPE IF EXISTS ${escapedIdentifier} CASCADE`,
   LIST_SCHEMA_TYPES: `
     SELECT t.typname
       FROM pg_type t

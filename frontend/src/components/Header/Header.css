@@ -1,16 +1,91 @@
-.app-header { position: sticky; top: 0; z-index: 40; background: var(--glass); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
-.hdr-user-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px clamp(12px, 3vw, 32px); border-bottom: 1px solid var(--border); background: var(--surface-2); }
-.hdr-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.hdr-avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; color: #fff; background: linear-gradient(135deg, var(--accent), var(--primary)); flex-shrink: 0; }
-.hdr-user-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
-.hdr-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hdr-email { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hdr-role { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); }
-.hdr-role-doctor { background: var(--accent-soft); color: var(--accent); }
-.hdr-role-admin { background: var(--warning-soft); color: var(--warning); }
-.hdr-actions { display: flex; align-items: center; gap: 10px; }
-.hdr-brand-bar { display: flex; align-items: center; gap: 14px; padding: 10px clamp(12px, 3vw, 32px); }
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.hdr-user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px clamp(12px, 3vw, 32px);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.hdr-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.hdr-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  flex-shrink: 0;
+}
+.hdr-user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.hdr-name {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hdr-email {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hdr-role {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.hdr-role-doctor {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.hdr-role-admin {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.hdr-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hdr-brand-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px clamp(12px, 3vw, 32px);
+}
 @media (max-width: 560px) {
-  .hdr-role { display: none; }
-  .hdr-logout { padding: 6px 10px; }
+  .hdr-role {
+    display: none;
+  }
+  .hdr-logout {
+    padding: 6px 10px;
+  }
 }

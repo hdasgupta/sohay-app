@@ -1,2 +1,11 @@
-.reg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
-.reg-hint { margin: -8px 0 0; text-align: center; color: var(--text-faint); font-size: 0.8rem; }
+.reg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+}
+.reg-hint {
+  margin: -8px 0 0;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+}

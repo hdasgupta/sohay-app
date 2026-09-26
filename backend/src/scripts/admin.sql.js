@@ -1,5 +1,5 @@
 /** SQL used by admin controllers. */
-import { APPOINTMENT_SELECT_BASE } from './common.sql.js';
+import { APPOINTMENT_SELECT_BASE } from "./common.sql.js";
 
 export const ADMIN_SQL = Object.freeze({
   ADMIN_INSERT: `
