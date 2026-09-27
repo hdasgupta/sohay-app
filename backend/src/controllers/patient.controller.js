@@ -107,9 +107,9 @@ export async function book(req, res) {
   const today = todayInKolkata();
   const tomorrow = addDays(today, 1);
 
-  if (date < tomorrow || date > addDays(today, BOOKING_WINDOW_DAYS)) {
+  if (date < today || date > addDays(today, BOOKING_WINDOW_DAYS)) {
     throw AppError.badRequest(
-      `Appointments can be booked from tomorrow up to ${BOOKING_WINDOW_DAYS} days ahead`
+        `Appointments can be booked from today up to ${BOOKING_WINDOW_DAYS} days ahead`,
     );
   }
 

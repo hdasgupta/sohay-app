@@ -164,7 +164,7 @@ export default function BookAppointmentPage() {
           <DatePicker
             label="Date"
             required
-            startDate={firstBookableDate}
+            startDate={today}
             endDate={addDaysIso(today, BOOKING_WINDOW_DAYS)}
             enabledWeekDays={weekdays}
             value={date}
