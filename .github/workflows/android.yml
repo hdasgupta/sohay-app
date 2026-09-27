@@ -25,13 +25,13 @@ jobs:
     steps:
 
       # =========================================================
-      # 1. Checkout
+      # 1. Checkout repository
       # =========================================================
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # =========================================================
-      # 2. Java 17
+      # 2. Setup Java 17
       # =========================================================
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -41,25 +41,65 @@ jobs:
           cache: gradle
 
       # =========================================================
-      # 3. Node.js
+      # 3. Setup Node.js 22
+      #
+      # Current Capacitor CLI requires Node.js >= 22.
       # =========================================================
-      - name: Setup Node.js
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
       # =========================================================
-      # 4. Install frontend dependencies
+      # 4. Verify Java and Node
+      # =========================================================
+      - name: Verify Java and Node
+        shell: bash
+        run: |
+          set -e
+
+          echo "Java:"
+          java -version
+
+          echo
+          echo "Node:"
+          node --version
+
+          echo
+          echo "npm:"
+          npm --version
+
+          NODE_MAJOR=$(node -p "process.versions.node.split('.')[0]")
+
+          if [ "$NODE_MAJOR" -lt 22 ]; then
+            echo "ERROR: Node.js 22 or newer is required."
+            exit 1
+          fi
+
+          echo
+          echo "Node.js version is compatible with Capacitor."
+
+      # =========================================================
+      # 5. Install frontend dependencies
       # =========================================================
       - name: Install frontend dependencies
         working-directory: frontend
+        shell: bash
         run: |
+          set -e
+
           npm ci
 
       # =========================================================
-      # 5. Configure Android SDK
+      # 6. Configure Android SDK
+      #
+      # We deliberately do NOT use:
+      # android-actions/setup-android
+      #
+      # GitHub's Ubuntu runner already contains Android SDK.
+      # We locate sdkmanager dynamically.
       # =========================================================
       - name: Configure Android SDK
         shell: bash
@@ -69,6 +109,9 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_HOME"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
 
+          echo
+          echo "Searching for sdkmanager..."
+
           SDKMANAGER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" \
             -type f \
             -name sdkmanager \
@@ -77,8 +120,11 @@ jobs:
             | tail -n 1)
 
           if [ -z "$SDKMANAGER" ]; then
+            echo
             echo "ERROR: sdkmanager was not found."
 
+            echo
+            echo "Android SDK contents:"
             find "$ANDROID_SDK_ROOT/cmdline-tools" \
               -maxdepth 4 \
               -type f \
@@ -87,9 +133,12 @@ jobs:
             exit 1
           fi
 
+          echo
           echo "Using sdkmanager:"
           echo "$SDKMANAGER"
 
+          echo
+          echo "sdkmanager version:"
           "$SDKMANAGER" --version
 
           SDKMANAGER_DIR="$(dirname "$SDKMANAGER")"
@@ -100,15 +149,22 @@ jobs:
           echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
 
       # =========================================================
-      # 6. Accept Android licenses
+      # 7. Accept Android SDK licenses
       # =========================================================
       - name: Accept Android SDK licenses
         shell: bash
         run: |
+          set -e
+
           yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
 
       # =========================================================
-      # 7. Install Android SDK 34
+      # 8. Install Android SDK 34
+      #
+      # Matches the current Sohay Android project:
+      # compileSdk = 34
+      # targetSdk  = 34
+      # buildTools = 34.0.0
       # =========================================================
       - name: Install Android SDK 34
         shell: bash
@@ -121,14 +177,22 @@ jobs:
             "build-tools;34.0.0"
 
       # =========================================================
-      # 8. Verify Android SDK
+      # 9. Verify Android SDK
       # =========================================================
       - name: Verify Android SDK
         shell: bash
         run: |
           set -e
 
-          test -f "$ANDROID_SDK_ROOT/platforms/android-34/android.jar"
+          echo "Checking Android 34..."
+
+          test -f \
+            "$ANDROID_SDK_ROOT/platforms/android-34/android.jar"
+
+          echo "Android 34 OK."
+
+          echo
+          echo "Checking Build Tools 34.0.0..."
 
           test -f \
             "$ANDROID_SDK_ROOT/build-tools/34.0.0/aapt2"
@@ -136,35 +200,44 @@ jobs:
           test -f \
             "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner"
 
-          echo "Android SDK 34 is ready."
+          echo "Build Tools 34.0.0 OK."
 
       # =========================================================
-      # 9. Build web application
+      # 10. Build React/Vite frontend
       # =========================================================
       - name: Build frontend
         working-directory: frontend
+        shell: bash
         run: |
+          set -e
+
           npm run build
 
       # =========================================================
-      # 10. Capacitor sync
+      # 11. Capacitor sync
       #
       # IMPORTANT:
+      #
       # This generates:
       #
       # frontend/android/capacitor-cordova-android-plugins/
-      # frontend/android/capacitor-cordova-android-plugins/
-      #     cordova.variables.gradle
       #
-      # which was missing in your failed build.
+      # including:
+      #
+      # cordova.variables.gradle
+      #
+      # This was missing in the previous build.
       # =========================================================
       - name: Sync Capacitor Android project
         working-directory: frontend
+        shell: bash
         run: |
+          set -e
+
           npx cap sync android
 
       # =========================================================
-      # 11. Verify Capacitor generated files
+      # 12. Verify Capacitor generated files
       # =========================================================
       - name: Verify Capacitor Android files
         shell: bash
@@ -173,25 +246,31 @@ jobs:
 
           FILE="frontend/android/capacitor-cordova-android-plugins/cordova.variables.gradle"
 
+          echo "Checking:"
+          echo "$FILE"
+
           if [ ! -f "$FILE" ]; then
+            echo
             echo "ERROR: Capacitor did not generate:"
             echo "$FILE"
 
             echo
-            echo "Contents of frontend/android:"
+            echo "Searching capacitor generated files..."
+
             find frontend/android \
-              -maxdepth 3 \
+              -maxdepth 5 \
               -type f \
-              -print | sort
+              -name "*.gradle" \
+              -print | sort || true
 
             exit 1
           fi
 
-          echo "Capacitor generated files successfully."
-          echo "$FILE"
+          echo
+          echo "Capacitor Android files are ready."
 
       # =========================================================
-      # 12. Check signing secrets
+      # 13. Check Android signing secrets
       # =========================================================
       - name: Check signing secrets
         shell: bash
@@ -226,7 +305,7 @@ jobs:
           echo "All Android signing secrets are present."
 
       # =========================================================
-      # 13. Decode keystore
+      # 14. Decode release keystore
       # =========================================================
       - name: Decode release keystore
         shell: bash
@@ -241,12 +320,31 @@ jobs:
             | base64 --decode \
             > frontend/android/app/sohay-release.keystore
 
-          test -s frontend/android/app/sohay-release.keystore
+          if [ ! -s frontend/android/app/sohay-release.keystore ]; then
+            echo "ERROR: Keystore file is empty or was not created."
+            exit 1
+          fi
 
-          echo "Release keystore created."
+          echo "Release keystore created successfully."
 
       # =========================================================
-      # 14. Configure release signing
+      # 15. Configure release signing
+      #
+      # The keystore is:
+      #
+      # frontend/android/app/sohay-release.keystore
+      #
+      # Because the Gradle project directory is already:
+      #
+      # frontend/android/app
+      #
+      # we MUST use:
+      #
+      # sohay-release.keystore
+      #
+      # and NOT:
+      #
+      # app/sohay-release.keystore
       # =========================================================
       - name: Configure release signing
         shell: bash
@@ -272,11 +370,28 @@ jobs:
                               android.signingConfigs.create("release")
                       }
 
+                      /*
+                       * project.projectDir is:
+                       *
+                       * frontend/android/app
+                       *
+                       * Therefore the keystore is directly:
+                       *
+                       * frontend/android/app/sohay-release.keystore
+                       */
+
                       def keystoreFile =
                           new File(
                               project.projectDir,
                               "sohay-release.keystore"
                           )
+
+                      if (!keystoreFile.exists()) {
+                          throw new GradleException(
+                              "Release keystore not found: " +
+                              keystoreFile.absolutePath
+                          )
+                      }
 
                       signingConfig.storeFile =
                           keystoreFile
@@ -301,54 +416,65 @@ jobs:
 
                       println("==============================================")
                       println("Sohay release signing configuration enabled")
-                      println("Keystore: " +
-                          keystoreFile.absolutePath)
-                      println("Alias: " +
-                          System.getenv("ANDROID_KEY_ALIAS"))
+                      println(
+                          "Keystore: " +
+                          keystoreFile.absolutePath
+                      )
+                      println(
+                          "Alias: " +
+                          System.getenv("ANDROID_KEY_ALIAS")
+                      )
                       println("==============================================")
                   }
               }
           }
           EOF
 
-          echo "Signing configuration created."
+          echo "Release signing configuration created."
 
       # =========================================================
-      # 15. Make Gradle executable
+      # 16. Make Gradle executable
       # =========================================================
       - name: Make Gradle wrapper executable
         working-directory: frontend/android
+        shell: bash
         run: |
           chmod +x ./gradlew
 
       # =========================================================
-      # 16. Show Gradle version
+      # 17. Verify Gradle
       # =========================================================
       - name: Verify Gradle
         working-directory: frontend/android
+        shell: bash
         run: |
-          java -version
+          set -e
+
           ./gradlew --version
 
       # =========================================================
-      # 17. Clean
+      # 18. Clean Android project
       # =========================================================
-      - name: Clean Android build
+      - name: Clean Android project
         working-directory: frontend/android
+        shell: bash
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          set -e
+
           ./gradlew clean \
             --init-script signing.init.gradle \
             --no-daemon
 
       # =========================================================
-      # 18. Build signed release APK
+      # 19. Build signed RELEASE APK
       # =========================================================
       - name: Build signed release APK
         working-directory: frontend/android
+        shell: bash
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -362,12 +488,14 @@ jobs:
             --stacktrace
 
       # =========================================================
-      # 19. Locate APK
+      # 20. Locate APK
       # =========================================================
       - name: Locate release APK
         shell: bash
         run: |
           set -e
+
+          echo "Generated APK files:"
 
           find frontend/android/app/build/outputs/apk \
             -type f \
@@ -377,7 +505,11 @@ jobs:
           APK="frontend/android/app/build/outputs/apk/release/app-release.apk"
 
           if [ ! -f "$APK" ]; then
-            echo "ERROR: app-release.apk was not found."
+            echo
+            echo "ERROR: Release APK was not found."
+
+            echo
+            echo "Available APK files:"
 
             find frontend/android/app/build/outputs/apk \
               -type f \
@@ -387,11 +519,12 @@ jobs:
             exit 1
           fi
 
-          echo "APK found:"
+          echo
+          echo "Release APK:"
           echo "$APK"
 
       # =========================================================
-      # 20. Verify APK signature
+      # 21. Verify APK signature
       # =========================================================
       - name: Verify APK signature
         shell: bash
@@ -400,17 +533,24 @@ jobs:
 
           APK="frontend/android/app/build/outputs/apk/release/app-release.apk"
 
-          "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" \
-            verify \
+          APKSIGNER="$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner"
+
+          if [ ! -f "$APKSIGNER" ]; then
+            echo "ERROR: apksigner was not found."
+            exit 1
+          fi
+
+          "$APKSIGNER" verify \
             --verbose \
             "$APK"
 
+          echo
           echo "APK signature verification successful."
 
       # =========================================================
-      # 21. Rename to sohay-app.apk
+      # 22. Prepare final APK
       # =========================================================
-      - name: Prepare final APK
+      - name: Prepare sohay-app.apk
         shell: bash
         run: |
           set -e
@@ -421,10 +561,11 @@ jobs:
             frontend/android/app/build/outputs/apk/release/app-release.apk \
             release/sohay-app.apk
 
+          echo "Final APK:"
           ls -lh release/sohay-app.apk
 
       # =========================================================
-      # 22. Upload APK artifact
+      # 23. Upload production APK
       # =========================================================
       - name: Upload production APK
         uses: actions/upload-artifact@v4
@@ -435,7 +576,7 @@ jobs:
           retention-days: 30
 
       # =========================================================
-      # 23. Cleanup signing material
+      # 24. Cleanup signing material
       # =========================================================
       - name: Cleanup signing files
         if: always()
@@ -444,4 +585,4 @@ jobs:
           rm -f frontend/android/app/sohay-release.keystore
           rm -f frontend/android/signing.init.gradle
 
-          echo "Signing files cleaned up."
+          echo "Temporary signing files removed."
