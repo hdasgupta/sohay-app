@@ -33,7 +33,7 @@ export async function availableSlots({
 }) {
   if (!isValidIsoDate(date)) throw AppError.badRequest("Invalid date");
   const now = nowInKolkata();
-  if (date <= now.date) return [];
+  if (date < now.date) return [];
   const weekday = weekdayOf(date);
   const { rows: ranges } = await query(
     COMMON_SQL.AVAILABILITY_FOR_DOCTOR_WEEKDAY,
