@@ -24,15 +24,15 @@ jobs:
 
     steps:
 
-      # ---------------------------------------------------------
-      # 1. Checkout repository
-      # ---------------------------------------------------------
+      # =========================================================
+      # 1. Checkout
+      # =========================================================
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # 2. Setup Java 17
-      # ---------------------------------------------------------
+      # =========================================================
+      # 2. Java 17
+      # =========================================================
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
@@ -40,14 +40,27 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      # ---------------------------------------------------------
-      # 3. Configure Android SDK
-      #
-      # Do NOT use android-actions/setup-android here.
-      # GitHub's Ubuntu runner already contains the Android SDK.
-      # We locate sdkmanager dynamically because the installed
-      # command-line-tools directory can change between runners.
-      # ---------------------------------------------------------
+      # =========================================================
+      # 3. Node.js
+      # =========================================================
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # =========================================================
+      # 4. Install frontend dependencies
+      # =========================================================
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: |
+          npm ci
+
+      # =========================================================
+      # 5. Configure Android SDK
+      # =========================================================
       - name: Configure Android SDK
         shell: bash
         run: |
@@ -55,8 +68,6 @@ jobs:
 
           echo "ANDROID_HOME=$ANDROID_HOME"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-
-          echo "Searching for sdkmanager..."
 
           SDKMANAGER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" \
             -type f \
@@ -67,22 +78,18 @@ jobs:
 
           if [ -z "$SDKMANAGER" ]; then
             echo "ERROR: sdkmanager was not found."
-            echo
-            echo "Android SDK directory:"
-            ls -la "$ANDROID_SDK_ROOT" || true
-            echo
-            echo "cmdline-tools:"
+
             find "$ANDROID_SDK_ROOT/cmdline-tools" \
               -maxdepth 4 \
               -type f \
               -print 2>/dev/null || true
+
             exit 1
           fi
 
-          echo "Found sdkmanager:"
+          echo "Using sdkmanager:"
           echo "$SDKMANAGER"
 
-          echo "sdkmanager version:"
           "$SDKMANAGER" --version
 
           SDKMANAGER_DIR="$(dirname "$SDKMANAGER")"
@@ -92,24 +99,17 @@ jobs:
 
           echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
 
-      # ---------------------------------------------------------
-      # 4. Accept Android SDK licenses
-      # ---------------------------------------------------------
+      # =========================================================
+      # 6. Accept Android licenses
+      # =========================================================
       - name: Accept Android SDK licenses
         shell: bash
         run: |
-          set -e
-
           yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
 
-      # ---------------------------------------------------------
-      # 5. Install EXACT SDK version used by Sohay
-      #
-      # Current repository:
-      # compileSdk = 34
-      # targetSdk  = 34
-      # buildTools = 34.0.0
-      # ---------------------------------------------------------
+      # =========================================================
+      # 7. Install Android SDK 34
+      # =========================================================
       - name: Install Android SDK 34
         shell: bash
         run: |
@@ -120,35 +120,79 @@ jobs:
             "platforms;android-34" \
             "build-tools;34.0.0"
 
-      # ---------------------------------------------------------
-      # 6. Verify Android SDK
-      # ---------------------------------------------------------
+      # =========================================================
+      # 8. Verify Android SDK
+      # =========================================================
       - name: Verify Android SDK
         shell: bash
         run: |
           set -e
 
-          echo "Installed Android platforms:"
-          ls -la "$ANDROID_SDK_ROOT/platforms"
-
-          echo
-          echo "Installed build tools:"
-          ls -la "$ANDROID_SDK_ROOT/build-tools"
-
-          echo
-          echo "Android 34:"
           test -f "$ANDROID_SDK_ROOT/platforms/android-34/android.jar"
 
-          echo
-          echo "Build Tools 34.0.0:"
-          test -f "$ANDROID_SDK_ROOT/build-tools/34.0.0/aapt2"
+          test -f \
+            "$ANDROID_SDK_ROOT/build-tools/34.0.0/aapt2"
 
-          echo
-          echo "Android SDK verification successful."
+          test -f \
+            "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner"
 
-      # ---------------------------------------------------------
-      # 7. Check required signing secrets
-      # ---------------------------------------------------------
+          echo "Android SDK 34 is ready."
+
+      # =========================================================
+      # 9. Build web application
+      # =========================================================
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm run build
+
+      # =========================================================
+      # 10. Capacitor sync
+      #
+      # IMPORTANT:
+      # This generates:
+      #
+      # frontend/android/capacitor-cordova-android-plugins/
+      # frontend/android/capacitor-cordova-android-plugins/
+      #     cordova.variables.gradle
+      #
+      # which was missing in your failed build.
+      # =========================================================
+      - name: Sync Capacitor Android project
+        working-directory: frontend
+        run: |
+          npx cap sync android
+
+      # =========================================================
+      # 11. Verify Capacitor generated files
+      # =========================================================
+      - name: Verify Capacitor Android files
+        shell: bash
+        run: |
+          set -e
+
+          FILE="frontend/android/capacitor-cordova-android-plugins/cordova.variables.gradle"
+
+          if [ ! -f "$FILE" ]; then
+            echo "ERROR: Capacitor did not generate:"
+            echo "$FILE"
+
+            echo
+            echo "Contents of frontend/android:"
+            find frontend/android \
+              -maxdepth 3 \
+              -type f \
+              -print | sort
+
+            exit 1
+          fi
+
+          echo "Capacitor generated files successfully."
+          echo "$FILE"
+
+      # =========================================================
+      # 12. Check signing secrets
+      # =========================================================
       - name: Check signing secrets
         shell: bash
         env:
@@ -160,30 +204,30 @@ jobs:
           set -e
 
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "ERROR: ANDROID_KEYSTORE_BASE64 is not configured."
+            echo "ERROR: ANDROID_KEYSTORE_BASE64 is missing."
             exit 1
           fi
 
           if [ -z "$KEYSTORE_PASSWORD" ]; then
-            echo "ERROR: ANDROID_KEYSTORE_PASSWORD is not configured."
+            echo "ERROR: ANDROID_KEYSTORE_PASSWORD is missing."
             exit 1
           fi
 
           if [ -z "$KEY_ALIAS" ]; then
-            echo "ERROR: ANDROID_KEY_ALIAS is not configured."
+            echo "ERROR: ANDROID_KEY_ALIAS is missing."
             exit 1
           fi
 
           if [ -z "$KEY_PASSWORD" ]; then
-            echo "ERROR: ANDROID_KEY_PASSWORD is not configured."
+            echo "ERROR: ANDROID_KEY_PASSWORD is missing."
             exit 1
           fi
 
           echo "All Android signing secrets are present."
 
-      # ---------------------------------------------------------
-      # 8. Create temporary signing keystore
-      # ---------------------------------------------------------
+      # =========================================================
+      # 13. Decode keystore
+      # =========================================================
       - name: Decode release keystore
         shell: bash
         env:
@@ -197,29 +241,15 @@ jobs:
             | base64 --decode \
             > frontend/android/app/sohay-release.keystore
 
-          if [ ! -s frontend/android/app/sohay-release.keystore ]; then
-            echo "ERROR: Keystore file was not created."
-            exit 1
-          fi
+          test -s frontend/android/app/sohay-release.keystore
 
           echo "Release keystore created."
 
-      # ---------------------------------------------------------
-      # 9. Create temporary Gradle signing configuration
-      #
-      # This is intentionally generated during CI.
-      # Your repository's current app/build.gradle does not
-      # currently define signingConfigs.release.
-      #
-      # Therefore we configure the Android Gradle Plugin from
-      # an init script without permanently modifying the repo.
-      # ---------------------------------------------------------
+      # =========================================================
+      # 14. Configure release signing
+      # =========================================================
       - name: Configure release signing
         shell: bash
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -e
 
@@ -229,7 +259,8 @@ jobs:
               if (project.name == "app" &&
                   project.plugins.hasPlugin("com.android.application")) {
 
-                  def android = project.extensions.findByName("android")
+                  def android =
+                      project.extensions.findByName("android")
 
                   if (android != null) {
 
@@ -242,22 +273,36 @@ jobs:
                       }
 
                       def keystoreFile =
-                          new File(project.projectDir, "app/sohay-release.keystore")
+                          new File(
+                              project.projectDir,
+                              "sohay-release.keystore"
+                          )
 
-                      signingConfig.storeFile = keystoreFile
+                      signingConfig.storeFile =
+                          keystoreFile
+
                       signingConfig.storePassword =
-                          System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                          System.getenv(
+                              "ANDROID_KEYSTORE_PASSWORD"
+                          )
+
                       signingConfig.keyAlias =
-                          System.getenv("ANDROID_KEY_ALIAS")
+                          System.getenv(
+                              "ANDROID_KEY_ALIAS"
+                          )
+
                       signingConfig.keyPassword =
-                          System.getenv("ANDROID_KEY_PASSWORD")
+                          System.getenv(
+                              "ANDROID_KEY_PASSWORD"
+                          )
 
                       android.buildTypes.release.signingConfig =
                           signingConfig
 
                       println("==============================================")
                       println("Sohay release signing configuration enabled")
-                      println("Keystore: " + keystoreFile.absolutePath)
+                      println("Keystore: " +
+                          keystoreFile.absolutePath)
                       println("Alias: " +
                           System.getenv("ANDROID_KEY_ALIAS"))
                       println("==============================================")
@@ -266,50 +311,44 @@ jobs:
           }
           EOF
 
-          echo "Temporary Gradle signing configuration created."
+          echo "Signing configuration created."
 
-      # ---------------------------------------------------------
-      # 10. Make Gradle executable
-      # ---------------------------------------------------------
+      # =========================================================
+      # 15. Make Gradle executable
+      # =========================================================
       - name: Make Gradle wrapper executable
         working-directory: frontend/android
-        shell: bash
         run: |
           chmod +x ./gradlew
 
-      # ---------------------------------------------------------
-      # 11. Show Gradle / Java versions
-      # ---------------------------------------------------------
-      - name: Verify Java and Gradle
+      # =========================================================
+      # 16. Show Gradle version
+      # =========================================================
+      - name: Verify Gradle
         working-directory: frontend/android
-        shell: bash
         run: |
           java -version
           ./gradlew --version
 
-      # ---------------------------------------------------------
-      # 12. Clean previous build
-      # ---------------------------------------------------------
+      # =========================================================
+      # 17. Clean
+      # =========================================================
       - name: Clean Android build
         working-directory: frontend/android
-        shell: bash
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          set -e
-
           ./gradlew clean \
             --init-script signing.init.gradle \
             --no-daemon
 
-      # ---------------------------------------------------------
-      # 13. Build signed RELEASE APK
-      # ---------------------------------------------------------
+      # =========================================================
+      # 18. Build signed release APK
+      # =========================================================
       - name: Build signed release APK
         working-directory: frontend/android
-        shell: bash
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -322,15 +361,13 @@ jobs:
             --no-daemon \
             --stacktrace
 
-      # ---------------------------------------------------------
-      # 14. Find generated APK
-      # ---------------------------------------------------------
+      # =========================================================
+      # 19. Locate APK
+      # =========================================================
       - name: Locate release APK
         shell: bash
         run: |
           set -e
-
-          echo "Searching for APK files..."
 
           find frontend/android/app/build/outputs/apk \
             -type f \
@@ -340,24 +377,22 @@ jobs:
           APK="frontend/android/app/build/outputs/apk/release/app-release.apk"
 
           if [ ! -f "$APK" ]; then
-            echo
-            echo "ERROR: Expected release APK was not found."
-            echo
-            echo "Available APK files:"
+            echo "ERROR: app-release.apk was not found."
+
             find frontend/android/app/build/outputs/apk \
               -type f \
               -name "*.apk" \
               -print || true
+
             exit 1
           fi
 
-          echo
-          echo "Release APK found:"
+          echo "APK found:"
           echo "$APK"
 
-      # ---------------------------------------------------------
-      # 15. Verify APK is signed
-      # ---------------------------------------------------------
+      # =========================================================
+      # 20. Verify APK signature
+      # =========================================================
       - name: Verify APK signature
         shell: bash
         run: |
@@ -365,23 +400,17 @@ jobs:
 
           APK="frontend/android/app/build/outputs/apk/release/app-release.apk"
 
-          APKSIGNER="$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner"
+          "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" \
+            verify \
+            --verbose \
+            "$APK"
 
-          if [ ! -f "$APKSIGNER" ]; then
-            echo "ERROR: apksigner not found:"
-            echo "$APKSIGNER"
-            exit 1
-          fi
-
-          "$APKSIGNER" verify --verbose "$APK"
-
-          echo
           echo "APK signature verification successful."
 
-      # ---------------------------------------------------------
-      # 16. Create final APK
-      # ---------------------------------------------------------
-      - name: Prepare Sohay APK
+      # =========================================================
+      # 21. Rename to sohay-app.apk
+      # =========================================================
+      - name: Prepare final APK
         shell: bash
         run: |
           set -e
@@ -394,9 +423,9 @@ jobs:
 
           ls -lh release/sohay-app.apk
 
-      # ---------------------------------------------------------
-      # 17. Upload production APK
-      # ---------------------------------------------------------
+      # =========================================================
+      # 22. Upload APK artifact
+      # =========================================================
       - name: Upload production APK
         uses: actions/upload-artifact@v4
         with:
@@ -405,9 +434,9 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      # ---------------------------------------------------------
-      # 18. Cleanup signing material
-      # ---------------------------------------------------------
+      # =========================================================
+      # 23. Cleanup signing material
+      # =========================================================
       - name: Cleanup signing files
         if: always()
         shell: bash
