@@ -2,7 +2,7 @@
 const env = {
   appEnv: import.meta.env.VITE_APP_ENV || import.meta.env.MODE,
   apiBaseUrl: (
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
+    import.meta.env.VITE_API_BASE_URL || "https://sohay-app.onrender.com/api"
   ).replace(/\/+$/, ""),
   organisationName:
     import.meta.env.VITE_ORGANISATION_NAME ||
