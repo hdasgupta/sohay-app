@@ -132,8 +132,9 @@ CREATE TABLE appointments (
   updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
   CHECK (end_time > start_time)
 );
-CREATE UNIQUE INDEX ux_doctor_slot  ON appointments (doctor_id,  appointment_date, start_time) WHERE slot_active;
-CREATE UNIQUE INDEX ux_patient_slot ON appointments (patient_id, appointment_date, start_time) WHERE slot_active;
+CREATE UNIQUE INDEX ux_patient_doctor_open
+  ON appointments (patient_id, doctor_id)
+  WHERE slot_active;
 CREATE INDEX ix_appointments_patient ON appointments (patient_id, appointment_date DESC, start_time DESC);
 CREATE INDEX ix_appointments_doctor  ON appointments (doctor_id,  appointment_date DESC, start_time DESC);
 CREATE INDEX ix_appointments_booked_by ON appointments (booked_by);

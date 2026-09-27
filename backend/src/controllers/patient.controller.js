@@ -105,12 +105,34 @@ export async function book(req, res) {
   const startTime = normaliseTime(req.body.startTime);
   if (!isValidIsoDate(date)) throw AppError.badRequest("Invalid date");
   const today = todayInKolkata();
-  if (date < today || date > addDays(today, BOOKING_WINDOW_DAYS))
+  const tomorrow = addDays(today, 1);
+
+  if (date < tomorrow || date > addDays(today, BOOKING_WINDOW_DAYS)) {
     throw AppError.badRequest(
-      `Appointments can be booked from today up to ${BOOKING_WINDOW_DAYS} days ahead`,
+      `Appointments can be booked from tomorrow up to ${BOOKING_WINDOW_DAYS} days ahead`
     );
+  }
+
   await assertCanBookFor(req.user.id, patientId);
   const doctor = await getDoctorForBooking(doctorId);
+  const existingAppointment =
+    await patientModel.openAppointmentForPatientDoctor(
+      patientId,
+      doctorId,
+    );
+
+  if (existingAppointment) {
+    throw AppError.conflict(
+      'This patient already has an open appointment with this doctor. Please cancel or complete the existing appointment before booking another one.',
+    );
+  }
+
+  await assertSlotBookable({
+    doctorId,
+    patientId,
+    date,
+    startTime,
+  });
   await assertSlotBookable({ doctorId, patientId, date, startTime });
   const row = await patientModel.insertAppointment({
     patientId,

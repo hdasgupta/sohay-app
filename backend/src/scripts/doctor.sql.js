@@ -19,10 +19,14 @@ export const DOCTOR_SQL = Object.freeze({
      WHERE a.id = $1 AND a.doctor_id = $2
        FOR UPDATE`,
   APPOINTMENT_MARK_COMPLETED: `
-    UPDATE appointments
-       SET status = $2, updated_at = now()
-     WHERE id = $1 AND doctor_id = $3 AND status = ANY($4::varchar[])
-    RETURNING id`,
+  UPDATE appointments
+     SET status = $2,
+         slot_active = FALSE,
+         updated_at = now()
+   WHERE id = $1
+     AND doctor_id = $3
+     AND status = ANY($4::varchar[])
+   RETURNING id`,
   MEDICINE_SEARCH: `
     SELECT id, name
       FROM medicines

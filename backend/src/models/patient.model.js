@@ -102,3 +102,14 @@ export const cancelAppointment = async ({
       allowedStatuses,
     ])
   ).rows[0] || null;
+export const openAppointmentForPatientDoctor = async (
+  patientId,
+  doctorId,
+) =>
+  (
+    await query(PATIENT_SQL.OPEN_APPOINTMENT_FOR_PATIENT_DOCTOR, [
+      patientId,
+      doctorId,
+      true,
+    ])
+  ).rows[0] || null;

@@ -98,4 +98,11 @@ export const PATIENT_SQL = Object.freeze({
        SET status = $2, slot_active = FALSE, cancelled_by = $3, updated_at = now()
      WHERE id = $1 AND status = ANY($4::varchar[])
     RETURNING id`,
+  OPEN_APPOINTMENT_FOR_PATIENT_DOCTOR: `
+    SELECT a.id, a.appointment_date, a.start_time, a.status
+      FROM appointments a
+      WHERE a.patient_id = $1
+        AND a.doctor_id = $2
+        AND a.slot_active = $3
+      LIMIT 1`,
 });

@@ -107,6 +107,7 @@ export default function BookAppointmentPage() {
   };
 
   const today = todayIso();
+  const firstBookableDate = addDaysIso(today, 1);
   const weekdays = useMemo(() => doctor?.weekdays || [], [doctor]);
 
   return (
@@ -163,7 +164,7 @@ export default function BookAppointmentPage() {
           <DatePicker
             label="Date"
             required
-            startDate={today}
+            startDate={firstBookableDate}
             endDate={addDaysIso(today, BOOKING_WINDOW_DAYS)}
             enabledWeekDays={weekdays}
             value={date}
@@ -171,7 +172,7 @@ export default function BookAppointmentPage() {
             disabled={!doctor}
             placeholder={doctor ? "Select a date" : "Choose a doctor first"}
             id="bk-date"
-            hint={`You can book up to ${BOOKING_WINDOW_DAYS} days in advance`}
+            hint={`You can book from tomorrow up to ${BOOKING_WINDOW_DAYS} days in advance`}
           />
           <Dropdown
             label="Time slot (IST)"
