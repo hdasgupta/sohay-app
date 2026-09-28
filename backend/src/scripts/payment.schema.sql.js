@@ -23,11 +23,6 @@ CREATE TABLE appointment_statuses (
   label  VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE payment_statuses (
-  code   VARCHAR(20) PRIMARY KEY,
-  label  VARCHAR(50) NOT NULL
-);
-
 CREATE TABLE invitation_statuses (
   code   VARCHAR(20) PRIMARY KEY,
   label  VARCHAR(50) NOT NULL

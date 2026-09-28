@@ -217,29 +217,11 @@ CREATE TABLE meeting_recordings (
 CREATE INDEX ix_recordings_appointment ON meeting_recordings (appointment_id);
 
 -- ------------------------- Payment schemas -------------------------
-CREATE TABLE IF NOT EXISTS payment_statuses (
-  code  VARCHAR(20) PRIMARY KEY,
-  label VARCHAR(50) NOT NULL
-);
-CREATE TABLE user_roles (
-  code   VARCHAR(20) PRIMARY KEY,
-  label  VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE appointment_statuses (
-  code   VARCHAR(20) PRIMARY KEY,
-  label  VARCHAR(50) NOT NULL
-);
-
 CREATE TABLE payment_statuses (
   code   VARCHAR(20) PRIMARY KEY,
   label  VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE invitation_statuses (
-  code   VARCHAR(20) PRIMARY KEY,
-  label  VARCHAR(50) NOT NULL
-);
 CREATE TABLE IF NOT EXISTS payments (
   id                     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   appointment_id         BIGINT REFERENCES appointments(id) ON DELETE SET NULL,

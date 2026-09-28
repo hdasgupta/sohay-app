@@ -112,7 +112,7 @@ export async function seedLookups() {
 
   await query(SYSTEM_SQL.SEED_PAYMENT_STATUSES, [
     payments,
-    payments.map((v) => v.charAt(0).toUpperCase() + v.slice(1)),
+    payments.map(cap),
   ]);
 }
 
@@ -139,19 +139,25 @@ export async function ensureAdmin() {
 /** Idempotent bootstrap executed on every server start */
 export async function bootstrapDatabase({ force = false } = {}) {
   const initialised = !force && (await isInitialised());
+
   if (!initialised) {
     await resetSchema();
-    await seedLookups();
+  } else {
+    logger.info("Database schema already initialised");
+  }
+
+  // Payment tables must exist before seedLookups()
+  await query(PAYMENT_SCHEMA_SQL);
+
+  // Seed all lookup tables, including payment_statuses
+  await seedLookups();
+
+  if (!initialised) {
     await query(SYSTEM_SQL.META_UPSERT, [
       META_KEYS.SCHEMA_VERSION,
       SCHEMA_VERSION,
     ]);
-  } else {
-    logger.info("Database schema already initialised");
-    await seedLookups();
   }
-
-  await query(PAYMENT_SCHEMA_SQL);
 
   await ensureAdmin();
 
