@@ -18,11 +18,13 @@ import {
   ROLES,
   APPOINTMENT_STATUS,
   INVITATION_STATUS,
+  PAYMENT_STATUS,
   FOOD_TIMING,
   FOOD_TIMING_LABEL,
   META_KEYS,
   SCHEMA_VERSION,
 } from "../config/constants.js";
+import { PAYMENT_SCHEMA_SQL } from "../scripts/payment.schema.sql.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCHEMA_FILE = path.resolve(__dirname, "../scripts/schema.sql");
@@ -106,6 +108,12 @@ export async function seedLookups() {
     food,
     food.map((f) => FOOD_TIMING_LABEL[f]),
   ]);
+  const payments = Object.values(PAYMENT_STATUS);
+
+  await query(SYSTEM_SQL.SEED_PAYMENT_STATUSES, [
+    payments,
+    payments.map((v) => v.charAt(0).toUpperCase() + v.slice(1)),
+  ]);
 }
 
 export async function ensureAdmin() {
@@ -142,6 +150,10 @@ export async function bootstrapDatabase({ force = false } = {}) {
     logger.info("Database schema already initialised");
     await seedLookups();
   }
+
+  await query(PAYMENT_SCHEMA_SQL);
+
   await ensureAdmin();
+
   return { freshlyCreated: !initialised };
 }

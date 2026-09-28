@@ -3,6 +3,7 @@ import h from "../utils/asyncHandler.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { ROLES } from "../config/constants.js";
 import * as c from "../controllers/patient.controller.js";
+import * as paymentController from "../controllers/payment.controller.js";
 
 const r = Router();
 r.use(authenticate, authorize(ROLES.PATIENT));
@@ -10,7 +11,15 @@ r.get("/doctors", h(c.listDoctors));
 r.get("/members", h(c.members));
 r.get("/slots", h(c.slots));
 r.get("/appointments", h(c.listAppointments));
-r.post("/appointments", h(c.book));
+r.post(
+  "/payments/order",
+  h(paymentController.createPaymentOrder),
+);
+
+r.post(
+  "/payments/verify",
+  h(paymentController.verifyPayment),
+);
 r.patch("/appointments/:id/cancel", h(c.cancel));
 r.get("/family", h(c.getFamily));
 r.post("/family", h(c.createFamily));

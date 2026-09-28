@@ -102,6 +102,19 @@ const env = {
   medicineCsvUrl: process.env.MEDICINE_CSV_URL,
   medicineImportOnStart: bool(process.env.MEDICINE_IMPORT_ON_START, true),
   enableCron: bool(process.env.ENABLE_CRON, true),
+  razorpay: {
+    keyId: process.env.RAZORPAY_KEY_ID || "",
+    keySecret: process.env.RAZORPAY_KEY_SECRET || "",
+    webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || "",
+    appointmentFeePaise: int(
+      process.env.RAZORPAY_APPOINTMENT_FEE_PAISE,
+      0,
+    ),
+    holdMinutes: int(
+      process.env.RAZORPAY_PAYMENT_HOLD_MINUTES,
+      15,
+    ),
+  },
 };
 
 export default env;

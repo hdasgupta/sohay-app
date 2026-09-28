@@ -26,6 +26,18 @@ export function appointmentDto(r) {
     rescheduleCount: r.reschedule_count,
     hasPrescription: Boolean(r.prescription_id),
     isUpcoming: upcoming,
+    paymentId:
+      r.payment_id == null
+        ? null
+        : Number(r.payment_id),
+
+    paymentStatus:
+      r.payment_status || null,
+
+    paymentAmountPaise:
+      r.payment_amount_paise == null
+        ? null
+        : Number(r.payment_amount_paise),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };

@@ -7,7 +7,8 @@ import {
   listDoctors,
   members as fetchMembers,
   slots as fetchSlots,
-  book,
+  createPaymentOrder,
+  verifyPayment,
 } from "../../api/patientApi.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { notify } from "../../utils/eventBus.js";
@@ -19,6 +20,9 @@ import {
 } from "../../utils/date.js";
 import { BOOKING_WINDOW_DAYS, WEEKDAYS_SHORT } from "../../config/constants.js";
 import "./BookAppointmentPage.css";
+import {
+  openRazorpayCheckout,
+} from "../../utils/razorpay.js";
 
 export default function BookAppointmentPage() {
   const { user } = useAuth();
@@ -31,6 +35,7 @@ export default function BookAppointmentPage() {
   const [slotList, setSlotList] = useState([]);
   const [slot, setSlot] = useState(null);
   const [booked, setBooked] = useState(null);
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
     listDoctors()
@@ -86,23 +91,104 @@ export default function BookAppointmentPage() {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!doctor || !date || !slot) {
-      notify.warning("Please choose the doctor, date and slot");
+
+    if (
+      !doctor ||
+      !date ||
+      !slot
+    ) {
+      notify.warning(
+        "Please choose the doctor, date and slot",
+      );
       return;
     }
+
+    if (paying) return;
+
+    setPaying(true);
+
     try {
-      const { data, message } = await book({
-        doctorId: doctor.id,
+      const {
+        data: order,
+      } =
+      await createPaymentOrder({
+        doctorId:
+          doctor.id,
         date,
-        startTime: slot,
+        startTime:
+          slot,
         patientId,
       });
-      notify.success(message || "Appointment booked");
-      setBooked(data);
+
+      const payment =
+        await openRazorpayCheckout(
+        order,
+      );
+
+      if (
+        !payment?.razorpay_payment_id ||
+        !payment?.razorpay_order_id ||
+        !payment?.razorpay_signature
+      ) {
+        throw new Error(
+          "Razorpay did not return a valid payment response",
+        );
+      }
+
+      const {
+        data,
+        message,
+      } =
+        await verifyPayment({
+          orderId:
+            payment.razorpay_order_id,
+          paymentId:
+            payment.razorpay_payment_id,
+          signature:
+            payment.razorpay_signature,
+        });
+
+      notify.success(
+        message ||
+          "Payment successful and appointment confirmed",
+      );
+
+      setBooked(
+        data.appointment,
+      );
+
       setSlot(null);
-      loadSlots(doctor, date, patientId);
-    } catch {
-      loadSlots(doctor, date, patientId);
+
+      loadSlots(
+        doctor,
+        date,
+        patientId,
+      );
+    } catch (err) {
+      const message =
+        String(
+          err?.message || "",
+        );
+
+      if (
+        /cancel|dismiss/i.test(
+          message,
+        )
+      ) {
+        notify.info(
+          "Payment was cancelled",
+        );
+      }
+
+      // The API/client error handler
+      // already shows backend errors.
+      loadSlots(
+        doctor,
+        date,
+        patientId,
+      );
+    } finally {
+      setPaying(false);
     }
   };
 
@@ -192,8 +278,25 @@ export default function BookAppointmentPage() {
             }
             id="bk-slot"
           />
-          <button type="submit" className="btn btn-primary" disabled={!slot}>
-            Book appointment
+          <div className="book-payment-summary">
+            <strong>Consultation fee</strong>
+            <span>
+              ₹
+              {Number(
+                import.meta.env
+                  .VITE_DISPLAY_APPOINTMENT_FEE ||
+                  0,
+              ).toLocaleString("en-IN")}
+            </span>
+          </div>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={!slot || paying}
+          >
+            {paying
+              ? "Opening payment..."
+              : "Pay & book appointment"}
           </button>
         </form>
         <aside className="stack">

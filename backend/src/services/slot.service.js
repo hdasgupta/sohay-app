@@ -42,6 +42,32 @@ export async function availableSlots({
   if (!ranges.length) return [];
   let slots = expandRanges(ranges);
   const excludeId = excludeAppointmentId || 0;
+  const { rows: paymentDoctorBusy } =
+    await query(
+      COMMON_SQL.PAYMENT_HOLD_DOCTOR_STARTS,
+      [doctorId, date, true],
+    );
+
+  paymentDoctorBusy.forEach((r) =>
+    busy.add(
+      normaliseTime(r.start_time),
+    ),
+  );
+
+  if (patientId) {
+    const { rows: paymentPatientBusy } =
+      await query(
+        COMMON_SQL.PAYMENT_HOLD_PATIENT_STARTS,
+        [patientId, date, true],
+      );
+
+    paymentPatientBusy.forEach((r) =>
+      busy.add(
+        normaliseTime(r.start_time),
+      ),
+    );
+  }
+
   const { rows: doctorBusy } = await query(COMMON_SQL.DOCTOR_BOOKED_STARTS, [
     doctorId,
     date,

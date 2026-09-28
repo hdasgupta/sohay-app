@@ -10,13 +10,18 @@ export const APPOINTMENT_SELECT_BASE = `
          pu.name AS patient_name, pu.email AS patient_email,
          du.name AS doctor_name, du.email AS doctor_email, d.speciality AS doctor_speciality,
          bu.name AS booked_by_name, bu.email AS booked_by_email,
-         pr.id AS prescription_id
+         pr.id AS prescription_id,
+         pay.id AS payment_id,
+         pay.status AS payment_status,
+         pay.amount_paise AS payment_amount_paise
     FROM appointments a
     JOIN users pu ON pu.id = a.patient_id
     JOIN users du ON du.id = a.doctor_id
     JOIN doctors d ON d.user_id = a.doctor_id
     JOIN users bu ON bu.id = a.booked_by
-    LEFT JOIN prescriptions pr ON pr.appointment_id = a.id`;
+    LEFT JOIN prescriptions pr ON pr.appointment_id = a.id
+    LEFT JOIN payments pay
+      ON pay.appointment_id = a.id`;
 
 export const COMMON_SQL = Object.freeze({
   // ---------- users ----------
@@ -118,4 +123,21 @@ export const COMMON_SQL = Object.freeze({
     SELECT id, appointment_id, doctor_id, patient_id, patient_name, patient_age, prescribed_on, pdf_key, pdf_url, created_at
       FROM prescriptions
      WHERE appointment_id = $1`,
-});
+
+  PAYMENT_HOLD_DOCTOR_STARTS: `
+    SELECT start_time
+      FROM payments
+     WHERE doctor_id = $1
+       AND appointment_date = $2::date
+       AND slot_hold_active = $3
+       AND expires_at > now()`,
+
+  PAYMENT_HOLD_PATIENT_STARTS: `
+    SELECT start_time
+      FROM payments
+     WHERE patient_id = $1
+       AND appointment_date = $2::date
+       AND slot_hold_active = $3
+       AND expires_at > now()`,
+  }
+);

@@ -71,6 +71,22 @@ export default function AppointmentCard({
           <li>
             <span className="faint">Ref</span> #{a.id}
           </li>
+          {a.paymentStatus ===
+            "captured" &&
+            a.paymentAmountPaise && (
+              <li>
+                <span className="faint">
+                  Amount
+                </span>{" "}
+                ₹
+                {(
+                  a.paymentAmountPaise /
+                  100
+                ).toLocaleString(
+                  "en-IN",
+                )}
+              </li>
+          )}
         </ul>
         {actions && <div className="appt-actions">{actions}</div>}
       </div>

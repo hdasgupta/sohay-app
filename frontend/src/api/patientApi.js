@@ -84,3 +84,31 @@ export const leaveFamily = async () =>
       { loaderMessage: "Leaving family..." },
     ),
   );
+
+export const createPaymentOrder = async (
+  body,
+) =>
+  unwrap(
+    await client.post(
+      "/patient/payments/order",
+      body,
+      {
+        loaderMessage:
+          "Preparing secure payment...",
+      },
+    ),
+  );
+
+export const verifyPayment = async (
+  body,
+) =>
+  unwrap(
+    await client.post(
+      "/patient/payments/verify",
+      body,
+      {
+        loaderMessage:
+          "Verifying payment...",
+      },
+    ),
+  );

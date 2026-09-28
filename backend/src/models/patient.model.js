@@ -74,9 +74,9 @@ export const insertAppointment = async ({
   startTime,
   endTime,
   status,
-}) =>
+}, client = null) =>
   (
-    await query(PATIENT_SQL.APPOINTMENT_INSERT, [
+    await db(client).query(PATIENT_SQL.APPOINTMENT_INSERT, [
       patientId,
       doctorId,
       bookedBy,
@@ -105,11 +105,11 @@ export const cancelAppointment = async ({
 export const openAppointmentForPatientDoctor = async (
   patientId,
   doctorId,
+  client = null,
 ) =>
   (
-    await query(PATIENT_SQL.OPEN_APPOINTMENT_FOR_PATIENT_DOCTOR, [
-      patientId,
-      doctorId,
-      true,
-    ])
+    await db(client).query(
+      PATIENT_SQL.OPEN_APPOINTMENT_FOR_PATIENT_DOCTOR,
+      [patientId, doctorId, true, 1],
+    )
   ).rows[0] || null;

@@ -46,3 +46,19 @@ export const META_KEYS = Object.freeze({
   SCHEMA_VERSION: "schema_version",
   MEDICINES_IMPORTED: "medicines_imported",
 });
+
+export const PAYMENT_STATUS = Object.freeze({
+  CREATED: "created",
+  ATTEMPTED: "attempted",
+  CAPTURED: "captured",
+  FAILED: "failed",
+  REFUNDED: "refunded",
+  EXPIRED: "expired",
+  CANCELLED: "cancelled",
+});
+
+export const PAYMENT_ACTIVE_HOLD_STATUSES = Object.freeze([
+  PAYMENT_STATUS.CREATED,
+  PAYMENT_STATUS.ATTEMPTED,
+]);
+

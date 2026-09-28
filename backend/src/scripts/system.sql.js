@@ -37,6 +37,10 @@ export const SYSTEM_SQL = Object.freeze({
     INSERT INTO food_timings (code, label)
     SELECT * FROM unnest($1::varchar[], $2::varchar[])
     ON CONFLICT (code) DO NOTHING`,
+  SEED_PAYMENT_STATUSES: `
+    INSERT INTO payment_statuses (code, label)
+    SELECT * FROM unnest($1::varchar[], $2::varchar[])
+    ON CONFLICT (code) DO NOTHING`,
 
   // ---------- medicines ----------
   MEDICINE_COUNT: `
@@ -81,4 +85,8 @@ export const SYSTEM_SQL = Object.freeze({
     UPDATE meeting_recordings
        SET storage_key = $2, storage_url = $3, upload_status = $4, error_message = $5
      WHERE id = $1`,
+  SEED_PAYMENT_STATUSES: `
+    INSERT INTO payment_statuses (code, label)
+    SELECT * FROM unnest($1::varchar[], $2::varchar[])
+    ON CONFLICT (code) DO NOTHING`,
 });
